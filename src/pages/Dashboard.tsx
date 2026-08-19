@@ -55,7 +55,7 @@ export default function Dashboard({ session }: { session: any }) {
 
       const { data: orgData } = await supabase
         .from('organizations')
-        .select('attendance_location_compulsory, weekly_offs')
+        .select('attendance_location_compulsory, weekly_offs, enable_individual_week_offs')
         .eq('id', empData.org_id)
         .maybeSingle();
         
@@ -261,7 +261,9 @@ export default function Dashboard({ session }: { session: any }) {
   const todayEffectiveStatus = isClockedIn ? getEffectiveAttendanceStatus(todayRecord, employeeShift) : 'absent';
 
   const daysUpToToday = daysInMonth.filter(d => format(d, 'yyyy-MM-dd') <= format(new Date(), 'yyyy-MM-dd'));
-  const weeklyOffs = org?.weekly_offs || [0];
+  const weeklyOffs = (org?.enable_individual_week_offs && Array.isArray(employee?.weekly_offs) && employee?.weekly_offs.length > 0)
+    ? employee.weekly_offs
+    : (org?.weekly_offs || [0]);
   
   let calculatedAbsentCount = 0;
   daysUpToToday.forEach(d => {
