@@ -1,10 +1,10 @@
 ﻿const fs = require('fs');
-let code = fs.readFileSync('src/components/layout/DashboardLayout.tsx', 'utf8');
+let code = fs.readFileSync('src/pages/ChatPage.tsx', 'utf8');
 
 code = code.replace(
-  "import { LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, LogOut, MessageCircle, Moon, Sun, X, CheckCircle2 } from 'lucide-react';",
-  "import { LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, LogOut, MessageCircle, Moon, Sun, X, CheckCircle2, Menu } from 'lucide-react';\nimport { Sheet, SheetContent, SheetTrigger } from \"@/components/ui/sheet\";"
+  "import { Send, UserCircle2, Users, MessageSquare, Plus, Check, CheckCheck, UserPlus, X, ShieldAlert } from 'lucide-react';",
+  "import { Send, UserCircle2, Users, MessageSquare, Plus, Check, CheckCheck, UserPlus, X, ShieldAlert, Search, ChevronLeft, Phone, Video, Info, MessageCircle, Clock } from 'lucide-react';"
 );
 
-fs.writeFileSync('src/components/layout/DashboardLayout.tsx', code);
-console.log("Fixed imports!");
+fs.writeFileSync('src/pages/ChatPage.tsx', code);
+console.log("Fixed imports in ChatPage!");
