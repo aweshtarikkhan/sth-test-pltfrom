@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { Send, UserCircle2, Users, MessageSquare, Plus, Check, CheckCheck, UserPlus, X, ShieldAlert, Search, ChevronLeft, Phone, Video, Info, MessageCircle, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-export default function ChatPage({ session }: { session: any }) {
+function ChatPage({ session }: { session: any }) {
   const [employee, setEmployee] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -485,7 +485,7 @@ export default function ChatPage({ session }: { session: any }) {
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-lg ${
                             selectedType === 'dm' && selectedTarget?.id === emp.id ? 'bg-white/20' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600'
                           }`}>
-                            {emp.name.charAt(0)}
+                            {(emp.name || '?').charAt(0)}
                           </div>
                           <div className="flex-1 text-left overflow-hidden">
                             <p className="text-sm font-bold truncate flex items-center gap-1">
@@ -527,7 +527,7 @@ export default function ChatPage({ session }: { session: any }) {
                       <div key={`req-${req.id}`} className="p-3 bg-gray-50 dark:bg-slate-900/30 rounded-2xl border border-gray-100 dark:border-slate-700/50">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                            {otherPerson.name.charAt(0)}
+                            {(otherPerson.name || '?').charAt(0)}
                           </div>
                           <div>
                             <p className="text-sm font-bold text-gray-900 dark:text-white">{otherPerson.name}</p>
@@ -572,7 +572,7 @@ export default function ChatPage({ session }: { session: any }) {
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center font-bold shadow-sm">
-                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : selectedTarget.name.charAt(0)}
+                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : (selectedTarget.name || '?').charAt(0)}
                   </div>
                   <div>
                     <h3 className="font-bold text-base">{selectedTarget.name}</h3>
@@ -730,7 +730,7 @@ export default function ChatPage({ session }: { session: any }) {
                     />
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
-                        {emp.name.charAt(0)}
+                        {(emp.name || '?').charAt(0)}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{emp.name}</p>
@@ -757,4 +757,38 @@ export default function ChatPage({ session }: { session: any }) {
       </Dialog>
     </div>
   );
+}
+
+
+class ErrorBoundary extends React.Component<any, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, info: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, info: any) {
+    console.error("CHAT PAGE ERROR:", error, info);
+    this.setState({ info });
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, color: 'red', backgroundColor: '#fee' }}>
+          <h2>Something went wrong in ChatPage.</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.info && this.state.info.componentStack}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function ChatPageWrapper(props: any) {
+  return <ErrorBoundary><ChatPage {...props} /></ErrorBoundary>;
 }
