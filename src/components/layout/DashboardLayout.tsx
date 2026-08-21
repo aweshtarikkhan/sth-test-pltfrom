@@ -268,10 +268,9 @@ export default function DashboardLayout() {
             </NavLink>
           </div>
 
-          {navItems.slice(2,4).map(item => {
-             // Let's remap the last two to Leave and Chat
+          {navItems.slice(2,5).map(item => {
              if (item.name === 'Holidays List') return null; // Used in center
-             const label = item.name === 'Leave Management' ? 'Leaves' : 'Chat';
+             const label = item.name === 'Leave Management' ? 'Leaves' : item.name === 'Team Chat' ? 'Chat' : item.name;
              return (
               <div key={item.name} className="flex-1 flex justify-center">
                 <NavLink

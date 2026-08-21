@@ -706,7 +706,7 @@ function ChatPage({ session }: { session: any }) {
                     <Input
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@'+selectedTarget.username}...`}
+                      placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@' + (selectedTarget?.username || selectedTarget?.name?.replace(/\s+/g, '').toLowerCase() || 'user')}...`}
                       className="flex-1 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-full pl-4 pr-12 h-12 shadow-inner"
                       disabled={sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)}
                     />
@@ -720,7 +720,7 @@ function ChatPage({ session }: { session: any }) {
                     </Button>
                   </form>
                   {selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id && (
-                    <p className="text-[10px] text-center text-slate-400 font-semibold uppercase tracking-wider mt-3">Waiting for @{selectedTarget.username} to accept</p>
+                    <p className="text-[10px] text-center text-slate-400 font-semibold uppercase tracking-wider mt-3">Waiting for @{selectedTarget?.username || selectedTarget?.name || 'user'} to accept</p>
                   )}
                 </div>
               )}
