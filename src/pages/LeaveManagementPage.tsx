@@ -124,7 +124,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leave Management</h1>
           <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Track your leave requests and balances.</p>
@@ -212,7 +212,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             <DialogDescription className="dark:text-slate-400">Submit a new leave application to HR.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="dark:text-slate-300">Start Date</Label>
                 <Input 

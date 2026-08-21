@@ -43,7 +43,7 @@ export default function HolidaysPage({ session }: { session: any }) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Company Holidays</h1>
           <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Public and company holidays for the year.</p>

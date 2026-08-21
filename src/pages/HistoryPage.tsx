@@ -249,7 +249,7 @@ export default function HistoryPage({ session }: { session: any }) {
 
       <Card className="shadow-sm border-gray-200 dark:border-slate-700 overflow-hidden dark:bg-slate-800">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left min-w-[600px]">
             <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-400 font-medium border-b border-gray-200 dark:border-slate-700">
               <tr>
                 <th className="px-6 py-4">Date</th>
