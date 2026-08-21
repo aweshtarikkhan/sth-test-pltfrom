@@ -372,6 +372,38 @@ function ChatPage({ session }: { session: any }) {
     return { ...emp, connection: conn || null };
   }).filter(emp => !pendingRequests.some(c => c.sender_id === emp.id));
 
+
+  const connectionsMap = connections.reduce((acc: any, conn: any) => {
+    const otherId = conn.sender_id === employee?.id ? conn.receiver_id : conn.sender_id;
+    acc[otherId] = conn;
+    return acc;
+  }, {});
+
+  const requests = connections.filter(c => c.status === 'pending' && c.receiver_id === employee?.id);
+  const pendingRequestsCount = requests.length;
+
+  const filteredEmployees = employeeList.filter(emp => 
+    (emp?.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) || 
+    (emp?.username || '').toLowerCase().includes((searchQuery || '').toLowerCase())
+  );
+
+  const handleUserSelect = (emp: any) => {
+    const conn = connectionsMap[emp.id];
+    setSelectedTarget(emp);
+    
+    if (!conn) {
+      // Logic for new connection would go here if needed, or handled when sending message
+      setSelectedType('dm');
+      setSelectedConnection(null);
+    } else if (conn.status === 'pending') {
+      setSelectedType(conn.receiver_id === employee?.id ? 'request' : 'dm');
+      setSelectedConnection(conn);
+    } else {
+      setSelectedType('dm');
+      setSelectedConnection(conn);
+    }
+  };
+
   return (
     <div className="relative w-full max-w-6xl mx-auto h-[calc(100vh-7rem)] md:h-[calc(100vh-3rem)] flex flex-col">
       {/* Background Top Banner (AssayBiz Blue) */}
