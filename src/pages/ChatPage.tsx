@@ -206,7 +206,43 @@ export default function ChatPage({ session }: { session: any }) {
       )
       .subscribe();
 
-    return () => {
+  
+  const [sidebarTab, setSidebarTab] = useState<'chats' | 'requests'>('chats');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loadingMessages, setLoadingMessages] = useState(false); // we reuse loading for now, or just default false since it wasn't there
+
+  const connectionsMap = connections.reduce((acc: any, conn: any) => {
+    const otherId = conn.sender_id === employee?.id ? conn.receiver_id : conn.sender_id;
+    acc[otherId] = conn;
+    return acc;
+  }, {});
+
+  const requests = connections.filter(c => c.status === 'pending' && c.receiver_id === employee?.id);
+  const pendingRequestsCount = requests.length;
+
+  const filteredEmployees = employeeList.filter(emp => 
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    emp.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleUserSelect = (emp: any) => {
+    const conn = connectionsMap[emp.id];
+    setSelectedTarget(emp);
+    
+    if (!conn) {
+      // Logic for new connection would go here if needed, or handled when sending message
+      setSelectedType('dm');
+      setSelectedConnection(null);
+    } else if (conn.status === 'pending') {
+      setSelectedType(conn.receiver_id === employee?.id ? 'request' : 'dm');
+      setSelectedConnection(conn);
+    } else {
+      setSelectedType('dm');
+      setSelectedConnection(conn);
+    }
+  };
+
+  return () => {
       supabase.removeChannel(channel);
     };
   }, [employee, selectedTarget, selectedType, selectedConnection]);
@@ -341,7 +377,7 @@ export default function ChatPage({ session }: { session: any }) {
       {/* Background Top Banner (AssayBiz Blue) */}
       <div className="absolute -top-8 -left-4 -right-4 h-48 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
 
-      <div className="relative z-10 flex justify-between items-end mb-4 px-1 md:px-0">
+      <div className={`relative z-10 flex justify-between items-end mb-4 px-1 md:px-0 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-white md:dark:text-white mb-1">Team Chat</h1>
           <p className="text-gray-500 dark:text-slate-400 sm:text-blue-100/80 md:dark:text-slate-400 text-sm font-medium">Connect directly or in groups</p>
@@ -350,7 +386,7 @@ export default function ChatPage({ session }: { session: any }) {
 
       <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Sidebar */}
-        <div className="w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+        <div className={`w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-slate-900/20">
             <div className="flex bg-gray-100 dark:bg-slate-900 rounded-xl p-1 mb-4">
               <button
@@ -394,10 +430,10 @@ export default function ChatPage({ session }: { session: any }) {
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  {groups.length === 0 ? (
+                  {groupList.length === 0 ? (
                     <p className="text-xs text-gray-400 px-2 italic">No groups yet.</p>
                   ) : (
-                    groups.map(group => (
+                    groupList.map(group => (
                       <button
                         key={`group-${group.id}`}
                         onClick={() => { setSelectedType('group'); setSelectedTarget(group); }}
