@@ -337,260 +337,352 @@ export default function ChatPage({ session }: { session: any }) {
   }).filter(emp => !pendingRequests.some(c => c.sender_id === emp.id));
 
   return (
-    <div className="max-w-6xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
-      <div className="mb-4 flex justify-between items-end">
+    <div className="relative w-full max-w-6xl mx-auto h-[calc(100vh-7rem)] md:h-[calc(100vh-3rem)] flex flex-col">
+      {/* Background Top Banner (AssayBiz Blue) */}
+      <div className="absolute -top-8 -left-4 -right-4 h-48 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
+
+      <div className="relative z-10 flex justify-between items-end mb-4 px-1 md:px-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Team Chat</h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Connect with your team members directly or in groups.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-white md:dark:text-white mb-1">Team Chat</h1>
+          <p className="text-gray-500 dark:text-slate-400 sm:text-blue-100/80 md:dark:text-slate-400 text-sm font-medium">Connect directly or in groups</p>
         </div>
-        <div className="text-sm text-slate-500 font-medium">Logged in as: <span className="text-blue-600 dark:text-blue-400">@{employee.username}</span></div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
+      <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Sidebar */}
-        <Card className="w-full md:w-72 h-[35vh] md:h-full flex flex-col shadow-sm border-gray-200 dark:border-slate-700 dark:bg-slate-800 shrink-0">
-          <CardHeader className="py-3 border-b border-gray-200 dark:border-slate-700 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium flex items-center dark:text-white">
-              <MessageSquare className="w-4 h-4 mr-2 text-blue-500" />
-              Chats
-            </CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowCreateGroup(true)} className="h-6 w-6 text-slate-500 hover:text-blue-500">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-0 hide-scrollbar">
-            
-            {/* Message Requests Section */}
-            {pendingUsers.length > 0 && (
-              <div className="py-2 bg-amber-50/50 dark:bg-amber-900/10">
-                <h3 className="px-4 py-1 text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider flex items-center">
-                  <UserPlus className="w-3 h-3 mr-1" />
-                  Message Requests ({pendingUsers.length})
-                </h3>
-                {pendingUsers.map(emp => (
-                  <button
-                    key={emp.id}
-                    onClick={() => { setSelectedType('request'); setSelectedTarget(emp); setSelectedConnection(emp.connection); }}
-                    className={`w-full text-left px-4 py-2 hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-colors ${
-                      selectedType === 'request' && selectedTarget?.id === emp.id ? 'bg-amber-100 dark:bg-amber-900/30 border-l-2 border-l-amber-500' : 'border-l-2 border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
-                        <UserCircle2 className="w-5 h-5 text-slate-500" />
-                      </div>
-                      <div className="overflow-hidden flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate flex items-center gap-1">
-                          {emp.name}
-                          {(emp.designation?.toLowerCase().includes('hr') || emp.role === 'hr') && (
-                            <span className="px-1 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[9px] font-bold tracking-wider">HR</span>
-                          )}
-                        </p>
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate">@{emp.username} • {emp.designation || 'Member'}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Groups Section */}
-            <div className="py-2 border-t border-gray-100 dark:border-slate-700/50">
-              <h3 className="px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Groups</h3>
-              {groupList.length === 0 ? (
-                <div className="px-4 py-2 text-xs text-slate-500">No groups yet.</div>
-              ) : (
-                groupList.map(grp => (
-                  <button
-                    key={grp.id}
-                    onClick={() => { setSelectedType('group'); setSelectedTarget(grp); setSelectedConnection(null); }}
-                    className={`w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors ${
-                      selectedType === 'group' && selectedTarget?.id === grp.id ? 'bg-blue-50 dark:bg-blue-900/30 border-l-2 border-l-blue-500' : 'border-l-2 border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        #
-                      </div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{grp.name}</p>
-                    </div>
-                  </button>
-                ))
-              )}
+        <div className="w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+          <div className="p-4 border-b border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-slate-900/20">
+            <div className="flex bg-gray-100 dark:bg-slate-900 rounded-xl p-1 mb-4">
+              <button
+                onClick={() => setSidebarTab('chats')}
+                className={`flex-1 text-sm font-bold py-2 rounded-lg transition-all ${sidebarTab === 'chats' ? 'bg-white dark:bg-slate-800 text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Chats
+              </button>
+              <button
+                onClick={() => setSidebarTab('requests')}
+                className={`flex-1 text-sm font-bold py-2 rounded-lg transition-all relative ${sidebarTab === 'requests' ? 'bg-white dark:bg-slate-800 text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Requests
+                {pendingRequestsCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
+              </button>
             </div>
             
-            {/* Direct Messages Section */}
-            <div className="py-2 border-t border-gray-100 dark:border-slate-700/50">
-              <h3 className="px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Employees / Direct Messages</h3>
-              {activeUsers.map(emp => (
-                <button
-                  key={emp.id}
-                  onClick={() => { setSelectedType('dm'); setSelectedTarget(emp); setSelectedConnection(emp.connection); }}
-                  className={`w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors ${
-                    selectedType === 'dm' && selectedTarget?.id === emp.id ? 'bg-blue-50 dark:bg-blue-900/30 border-l-2 border-l-blue-500' : 'border-l-2 border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-600">
-                      <UserCircle2 className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="overflow-hidden flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate flex items-center gap-1">
-                        {emp.name}
-                        {(emp.designation?.toLowerCase().includes('hr') || emp.role === 'hr') && (
-                           <span className="px-1 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[9px] font-bold tracking-wider">HR</span>
-                        )}
-                      </p>
-                      <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate">@{emp.username} • {emp.designation || 'Member'}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Chat Area */}
-        <Card className="flex-1 flex flex-col overflow-hidden shadow-sm border-gray-200 dark:border-slate-700 dark:bg-slate-800">
-          <CardHeader className="bg-gray-50 dark:bg-slate-800/80 border-b border-gray-200 dark:border-slate-700 py-3">
-            <CardTitle className="text-sm font-medium flex items-center dark:text-white">
-              {selectedType === 'group' ? (
-                <>
-                  <Users className="w-5 h-5 mr-2 text-indigo-500" />
-                  {selectedTarget?.name}
-                </>
-              ) : (selectedType === 'dm' || selectedType === 'request') ? (
-                <>
-                  <UserCircle2 className="w-5 h-5 mr-2 text-blue-500" />
-                  {selectedTarget?.name} 
-                  {(selectedTarget?.designation?.toLowerCase().includes('hr') || selectedTarget?.role === 'hr') && (
-                    <span className="ml-2 px-1 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold tracking-wider">HR</span>
-                  )}
-                  <span className="ml-2 font-normal text-slate-400 text-xs">@{selectedTarget?.username}</span>
-                </>
-              ) : (
-                'Select a chat'
-              )}
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className={`flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-slate-900/50 ${selectedType === 'request' ? 'opacity-80' : ''}`}>
-            {!selectedTarget ? (
-              <div className="text-center text-gray-500 dark:text-slate-400 py-12 flex flex-col items-center">
-                <MessageSquare className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3 opacity-50" />
-                <p>Select a direct message or group from the list.</p>
-              </div>
-            ) : loading ? (
-              <div className="text-center text-gray-500 dark:text-slate-400 py-4">Loading messages...</div>
-            ) : messages.length === 0 ? (
-              <div className="text-center text-gray-500 dark:text-slate-400 py-12 flex flex-col items-center">
-                {selectedType === 'group' ? <Users className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" /> : <UserCircle2 className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />}
-                <p>No messages yet. Start the conversation!</p>
-              </div>
-            ) : (
-              messages.map((msg, idx) => {
-                const isMine = msg.sender_id === employee.id;
-                const showSender = selectedType === 'group' && !isMine && (idx === 0 || messages[idx-1].sender_id !== msg.sender_id);
-                
-                return (
-                  <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                    {showSender && (
-                      <span className="text-[10px] font-semibold text-slate-500 mb-0.5 ml-1">@{msg.sender?.username}</span>
-                    )}
-                    <div
-                      className={`max-w-[80%] px-4 py-2 rounded-2xl flex flex-col ${
-                        isMine
-                          ? 'bg-blue-600 text-white rounded-tr-sm'
-                          : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 border border-gray-200 dark:border-slate-600 rounded-tl-sm'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
-                      
-                      {/* WhatsApp like ticks for own messages */}
-                      <div className={`flex items-center gap-1 self-end mt-1 ${isMine ? 'text-blue-200' : 'text-gray-400 dark:text-slate-500'}`}>
-                        <span className="text-[9px]">
-                          {format(new Date(msg.created_at), 'hh:mm a')}
-                        </span>
-                        {isMine && (
-                          <>
-                            {msg.status === 'sent' && <Check className="w-3 h-3 text-blue-200" />}
-                            {msg.status === 'delivered' && <CheckCheck className="w-3 h-3 text-blue-200" />}
-                            {msg.status === 'read' && <CheckCheck className="w-3 h-3 text-cyan-300" />}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-            <div ref={messagesEndRef} />
-          </CardContent>
-
-          {selectedType === 'request' && (
-            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border-t border-amber-200 dark:border-amber-900/30 flex flex-col items-center justify-center space-y-3">
-              <div className="flex items-center text-amber-700 dark:text-amber-500 text-sm font-medium">
-                <ShieldAlert className="w-4 h-4 mr-2" />
-                This is a message request.
-              </div>
-              <p className="text-xs text-amber-600 dark:text-amber-600/80 text-center max-w-sm">
-                If you accept, they will be able to message you directly and see when you've read their messages.
-              </p>
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm" onClick={() => handleConnectionResponse('rejected')} disabled={processingRequest} className="border-amber-200 text-amber-700 hover:bg-amber-100 dark:border-amber-900/50 dark:text-amber-500">
-                  Reject
-                </Button>
-                <Button size="sm" onClick={() => handleConnectionResponse('accepted')} disabled={processingRequest} className="bg-amber-600 hover:bg-amber-700 text-white">
-                  Accept Request
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {(selectedType === 'dm' || selectedType === 'group') && selectedTarget && (
-            <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
-              <form onSubmit={handleSendMessage} className="flex gap-2">
+            {sidebarTab === 'chats' && (
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@'+selectedTarget.username}...`}
-                  className="flex-1 dark:bg-slate-900 dark:border-slate-600 dark:text-white"
-                  disabled={sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)}
+                  placeholder="Search users or groups..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl h-10 text-sm"
                 />
-                <Button type="submit" disabled={!newMessage.trim() || sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)} className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </form>
-              {selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id && (
-                <p className="text-[10px] text-center text-slate-400 mt-2">Waiting for @{selectedTarget.username} to accept your request.</p>
-              )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            {sidebarTab === 'chats' ? (
+              <>
+                {/* Groups Section */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between px-2 mb-2">
+                    <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Groups</span>
+                    <button onClick={() => setShowCreateGroup(true)} className="text-orange-500 hover:text-orange-600 p-1 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {groups.length === 0 ? (
+                    <p className="text-xs text-gray-400 px-2 italic">No groups yet.</p>
+                  ) : (
+                    groups.map(group => (
+                      <button
+                        key={`group-${group.id}`}
+                        onClick={() => { setSelectedType('group'); setSelectedTarget(group); }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
+                          selectedType === 'group' && selectedTarget?.id === group.id
+                            ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                            : 'hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          selectedType === 'group' && selectedTarget?.id === group.id ? 'bg-white/20' : 'bg-[#0a192f] text-white'
+                        }`}>
+                          <Users className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 text-left overflow-hidden">
+                          <p className="text-sm font-bold truncate">{group.name}</p>
+                          <p className={`text-[10px] font-medium truncate ${selectedType === 'group' && selectedTarget?.id === group.id ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                            {group.created_by === employee?.id ? 'You are admin' : 'Group member'}
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                {/* Direct Messages Section */}
+                <div>
+                  <div className="px-2 mb-2">
+                    <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Direct Messages</span>
+                  </div>
+                  {filteredEmployees.length === 0 ? (
+                    <p className="text-xs text-gray-400 px-2 italic">No users found.</p>
+                  ) : (
+                    filteredEmployees.map(emp => {
+                      const conn = connectionsMap[emp.id];
+                      const isConnected = conn?.status === 'accepted';
+                      const isPending = conn?.status === 'pending';
+                      
+                      return (
+                        <button
+                          key={`emp-${emp.id}`}
+                          onClick={() => handleUserSelect(emp)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
+                            selectedType === 'dm' && selectedTarget?.id === emp.id
+                              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                              : 'hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-lg ${
+                            selectedType === 'dm' && selectedTarget?.id === emp.id ? 'bg-white/20' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600'
+                          }`}>
+                            {emp.name.charAt(0)}
+                          </div>
+                          <div className="flex-1 text-left overflow-hidden">
+                            <p className="text-sm font-bold truncate flex items-center gap-1">
+                              {emp.name}
+                              {isConnected && <div className="w-2 h-2 rounded-full bg-green-500"></div>}
+                            </p>
+                            <p className={`text-[10px] font-medium truncate ${selectedType === 'dm' && selectedTarget?.id === emp.id ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                              @{emp.username}
+                            </p>
+                          </div>
+                          {!isConnected && !isPending && selectedType !== 'dm' && (
+                            <UserPlus className="w-4 h-4 text-gray-400" />
+                          )}
+                          {isPending && selectedType !== 'dm' && (
+                            <Clock className="w-4 h-4 text-amber-500" />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Requests Tab */
+              <div className="space-y-3">
+                {requests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <UserPlus className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-500">No pending requests</p>
+                  </div>
+                ) : (
+                  requests.map(req => {
+                    const isOutgoing = req.sender_id === employee?.id;
+                    const otherPersonId = isOutgoing ? req.receiver_id : req.sender_id;
+                    const otherPerson = employeeList.find(e => e.id === otherPersonId);
+                    if (!otherPerson) return null;
+
+                    return (
+                      <div key={`req-${req.id}`} className="p-3 bg-gray-50 dark:bg-slate-900/30 rounded-2xl border border-gray-100 dark:border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                            {otherPerson.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white">{otherPerson.name}</p>
+                            <p className="text-xs text-gray-500">@{otherPerson.username}</p>
+                          </div>
+                        </div>
+                        {isOutgoing ? (
+                          <div className="text-xs font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg text-center uppercase tracking-wider">
+                            Request Sent
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs rounded-xl border-gray-200 dark:border-slate-600 font-bold" onClick={() => handleConnectionResponse('rejected')}>Decline</Button>
+                            <Button size="sm" className="flex-1 h-8 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold" onClick={() => handleConnectionResponse('accepted')}>Accept</Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chat Window */}
+        <div className={`flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden ${!selectedTarget ? 'hidden md:flex' : 'flex'}`}>
+          {!selectedTarget ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 dark:bg-slate-900/20">
+              <div className="w-20 h-20 bg-blue-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <MessageCircle className="w-10 h-10 text-blue-300 dark:text-slate-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Your Messages</h2>
+              <p className="text-gray-500 dark:text-slate-400 text-sm max-w-xs">Select a colleague or group from the sidebar to start chatting.</p>
             </div>
+          ) : (
+            <>
+              {/* Chat Header */}
+              <div className="h-16 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between px-4 bg-[#0a192f] text-white shrink-0">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setSelectedTarget(null)} className="md:hidden p-2 -ml-2 hover:bg-white/10 rounded-full">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center font-bold shadow-sm">
+                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : selectedTarget.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base">{selectedTarget.name}</h3>
+                    <p className="text-xs text-blue-200">
+                      {selectedType === 'group' ? 'Group Chat' : `@${selectedTarget.username}`}
+                    </p>
+                  </div>
+                </div>
+                {selectedType === 'dm' && (
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"><Phone className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"><Video className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"><Info className="w-4 h-4" /></Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-slate-900/30">
+                {loadingMessages ? (
+                  <div className="flex-1 flex justify-center items-center h-full">
+                    <div className="animate-pulse flex space-x-2">
+                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                    </div>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-slate-500 space-y-3">
+                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-sm">
+                      <MessageCircle className="w-8 h-8 text-gray-300 dark:text-slate-600" />
+                    </div>
+                    <p className="text-sm font-medium">Say hello to {selectedType === 'group' ? 'the group' : selectedTarget.name}!</p>
+                  </div>
+                ) : (
+                  messages.map((msg, idx) => {
+                    const isMine = msg.sender_id === employee.id;
+                    const showSender = selectedType === 'group' && !isMine && (idx === 0 || messages[idx-1].sender_id !== msg.sender_id);
+                    
+                    return (
+                      <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                        {showSender && (
+                          <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase tracking-wider">@{msg.sender?.username}</span>
+                        )}
+                        <div
+                          className={`max-w-[85%] sm:max-w-[75%] px-4 py-2.5 rounded-2xl flex flex-col shadow-sm ${
+                            isMine
+                              ? 'bg-orange-500 text-white rounded-tr-sm'
+                              : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 border border-gray-100 dark:border-slate-600 rounded-tl-sm'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                          
+                          {/* Read Receipts */}
+                          <div className={`flex items-center gap-1 self-end mt-1.5 ${isMine ? 'text-orange-200' : 'text-gray-400 dark:text-slate-500'}`}>
+                            <span className="text-[9px] font-medium">
+                              {format(new Date(msg.created_at), 'hh:mm a')}
+                            </span>
+                            {isMine && (
+                              <>
+                                {msg.status === 'sent' && <Check className="w-3 h-3 text-white/60" />}
+                                {msg.status === 'delivered' && <CheckCheck className="w-3 h-3 text-white/60" />}
+                                {msg.status === 'read' && <CheckCheck className="w-3 h-3 text-[#0a192f]" />}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Pending Request Banner */}
+              {selectedType === 'request' && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-200 dark:border-amber-900/50 flex flex-col items-center justify-center space-y-3">
+                  <div className="flex items-center text-amber-700 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
+                    <ShieldAlert className="w-4 h-4 mr-2" /> Message Request
+                  </div>
+                  <p className="text-xs text-amber-600/80 dark:text-amber-500/80 text-center font-medium">
+                    If you accept, they will be able to message you directly.
+                  </p>
+                  <div className="flex gap-3 mt-2">
+                    <Button variant="outline" size="sm" onClick={() => handleConnectionResponse('rejected')} disabled={processingRequest} className="border-amber-200 text-amber-700 hover:bg-amber-100 rounded-xl font-bold">
+                      Reject
+                    </Button>
+                    <Button size="sm" onClick={() => handleConnectionResponse('accepted')} disabled={processingRequest} className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-md shadow-amber-600/20">
+                      Accept Request
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Input Area */}
+              {(selectedType === 'dm' || selectedType === 'group') && selectedTarget && (
+                <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 shrink-0">
+                  <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@'+selectedTarget.username}...`}
+                      className="flex-1 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-full pl-4 pr-12 h-12 shadow-inner"
+                      disabled={sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)}
+                    />
+                    <Button 
+                      type="submit" 
+                      size="icon"
+                      disabled={!newMessage.trim() || sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)} 
+                      className="absolute right-1 top-1 w-10 h-10 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-md transition-transform active:scale-95 disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4 ml-0.5" />
+                    </Button>
+                  </form>
+                  {selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id && (
+                    <p className="text-[10px] text-center text-slate-400 font-semibold uppercase tracking-wider mt-3">Waiting for @{selectedTarget.username} to accept</p>
+                  )}
+                </div>
+              )}
+            </>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Create Group Modal */}
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
-        <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700">
+        <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700 rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Create New Group</DialogTitle>
+            <DialogTitle className="dark:text-white font-bold">Create New Group</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium dark:text-slate-200">Group Name</label>
+              <label className="text-xs font-bold uppercase tracking-wider dark:text-slate-400">Group Name</label>
               <Input
                 placeholder="e.g. Project Alpha Team"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="dark:bg-slate-900 dark:border-slate-600 dark:text-white"
+                className="dark:bg-slate-900 dark:border-slate-700 dark:text-white rounded-xl h-12"
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium dark:text-slate-200">Select Members</label>
-              <div className="border border-slate-200 dark:border-slate-700 rounded-md max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/50">
+              <label className="text-xs font-bold uppercase tracking-wider dark:text-slate-400">Select Members</label>
+              <div className="border border-gray-200 dark:border-slate-700 rounded-2xl max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-700/50 bg-gray-50/50 dark:bg-slate-900/30">
                 {employeeList.map(emp => (
-                  <label key={emp.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer">
+                  <label key={emp.id} className="flex items-center gap-3 p-3 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedMembers.includes(emp.id)}
@@ -598,25 +690,30 @@ export default function ChatPage({ session }: { session: any }) {
                         if (e.target.checked) setSelectedMembers([...selectedMembers, emp.id]);
                         else setSelectedMembers(selectedMembers.filter(id => id !== emp.id));
                       }}
-                      className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-300 dark:border-slate-600 text-orange-500 focus:ring-orange-500 w-4 h-4"
                     />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">{emp.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">@{emp.username}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
+                        {emp.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{emp.name}</p>
+                        <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">@{emp.username}</p>
+                      </div>
                     </div>
                   </label>
                 ))}
                 {employeeList.length === 0 && (
-                  <div className="p-3 text-sm text-slate-500 text-center">No other employees found.</div>
+                  <div className="p-4 text-sm font-medium text-slate-500 text-center">No other employees found.</div>
                 )}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateGroup(false)} disabled={creatingGroup} className="dark:border-slate-600 dark:text-slate-300">
+            <Button variant="outline" onClick={() => setShowCreateGroup(false)} disabled={creatingGroup} className="dark:border-slate-700 dark:text-slate-300 rounded-xl font-bold h-10">
               Cancel
             </Button>
-            <Button onClick={handleCreateGroup} disabled={creatingGroup || !newGroupName.trim() || selectedMembers.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleCreateGroup} disabled={creatingGroup || !newGroupName.trim() || selectedMembers.length === 0} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold h-10 shadow-lg shadow-orange-500/20">
               Create Group
             </Button>
           </DialogFooter>

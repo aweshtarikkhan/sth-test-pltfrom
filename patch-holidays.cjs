@@ -1,47 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
-import { format, parseISO } from 'date-fns';
-import { CalendarDays, MapPin } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+﻿const fs = require('fs');
 
-export default function HolidaysPage({ session }: { session: any }) {
-  const [holidays, setHolidays] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+let code = fs.readFileSync('src/pages/HolidaysPage.tsx', 'utf8');
 
-  useEffect(() => {
-    const loadHolidays = async () => {
-      try {
-        setLoading(true);
-        const { data: empData } = await supabase
-          .from('employees')
-          .select('org_id')
-          .eq('auth_user_id', session.user.id)
-          .single();
+const returnStatementRegex = /return \(\s*<div className="max-w-4xl mx-auto space-y-6">([\s\S]*?)<\/div>\s*\);\s*}\s*$/;
 
-        if (empData) {
-          const { data } = await supabase
-            .from('holidays')
-            .select('*')
-            .eq('org_id', empData.org_id)
-            .order('date', { ascending: true });
-          
-          setHolidays(data || []);
-        }
-      } catch (err: any) {
-        toast({ title: 'Error', description: err.message, variant: 'destructive' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadHolidays();
-  }, [session]);
-
-  const upcomingHolidays = holidays.filter(h => new Date(h.date) >= new Date());
-  const pastHolidays = holidays.filter(h => new Date(h.date) < new Date());
-
-  return (
+const newRender = `return (
     <div className="relative w-full max-w-lg mx-auto md:max-w-5xl pb-6">
       {/* Background Top Banner (AssayBiz Blue) */}
       <div className="absolute -top-8 -left-4 -right-4 h-64 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
@@ -107,4 +70,12 @@ export default function HolidaysPage({ session }: { session: any }) {
       </div>
     </div>
   );
+}`;
+
+if (returnStatementRegex.test(code)) {
+  code = code.replace(returnStatementRegex, newRender);
+  fs.writeFileSync('src/pages/HolidaysPage.tsx', code);
+  console.log("HolidaysPage patched successfully!");
+} else {
+  console.log("Could not match the return statement in HolidaysPage.tsx");
 }

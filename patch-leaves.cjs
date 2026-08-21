@@ -1,128 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { format, parseISO } from 'date-fns';
-import { Umbrella, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
-} from "@/components/ui/dialog";
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+﻿const fs = require('fs');
 
-export default function LeaveManagementPage({ session }: { session: any }) {
-  const [employee, setEmployee] = useState<any>(null);
-  const [leaves, setLeaves] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [applyOpen, setApplyOpen] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const { toast } = useToast();
-  const [leaveBalances, setLeaveBalances] = useState<Record<string, { used: number; accrued: number; annual: number }>>({});
+let code = fs.readFileSync('src/pages/LeaveManagementPage.tsx', 'utf8');
 
-  const [leaveData, setLeaveData] = useState({
-    startDate: '',
-    endDate: '',
-    leaveType: 'casual',
-    reason: ''
-  });
+const returnStatementRegex = /return \(\s*<div className="max-w-5xl mx-auto space-y-6">([\s\S]*?)<\/div>\s*\);\s*}\s*$/;
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const { data: empData } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('auth_user_id', session.user.id)
-        .single();
-
-      if (empData) {
-        setEmployee(empData);
-
-        const [leavesRes, balancesRes, policiesRes] = await Promise.all([
-          supabase.from('leaves').select('*').eq('employee_id', empData.id).order('created_at', { ascending: false }),
-          (supabase as any).from('employee_leave_balances').select('*').eq('employee_id', empData.id),
-          (supabase as any).from('leave_policies').select('*').eq('org_id', empData.org_id),
-        ]);
-
-        setLeaves(leavesRes.data || []);
-
-        // Build balance map
-        const DEFAULT_ANNUAL: Record<string, number> = { casual: 12, sick: 5, paid: 8 };
-        const bmap: Record<string, { used: number; accrued: number; annual: number }> = {};
-        ['casual', 'sick', 'paid'].forEach((t) => {
-          const bal = (balancesRes.data || []).find((b: any) => b.leave_type === t);
-          const pol = (policiesRes.data || []).find((p: any) => p.leave_type === t);
-          bmap[t] = {
-            used: bal?.used ?? 0,
-            accrued: bal?.accrued ?? 0,
-            annual: pol?.annual_limit ?? DEFAULT_ANNUAL[t] ?? 0,
-          };
-        });
-        setLeaveBalances(bmap);
-      }
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [session]);
-
-  const handleApplyLeave = async () => {
-    if (!leaveData.startDate || !leaveData.endDate || !leaveData.reason) {
-      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' });
-      return;
-    }
-    setActionLoading(true);
-    try {
-      const days = (new Date(leaveData.endDate).getTime() - new Date(leaveData.startDate).getTime()) / (1000 * 3600 * 24) + 1;
-      
-      const { error } = await supabase.from('leaves').insert({
-        org_id: employee.org_id,
-        employee_id: employee.id,
-        start_date: leaveData.startDate,
-        end_date: leaveData.endDate,
-        leave_type: leaveData.leaveType,
-        reason: leaveData.reason,
-        days: days,
-        status: 'pending'
-      });
-
-      if (error) throw error;
-      
-      toast({ title: 'Success', description: 'Leave request submitted successfully' });
-      setApplyOpen(false);
-      setLeaveData({ startDate: '', endDate: '', leaveType: 'casual', reason: '' });
-      loadData();
-      
-      // Notify HR
-      await supabase.from('notifications').insert({
-        org_id: employee.org_id,
-        title: 'New Leave Request',
-        message: `${employee.name} applied for ${days} day(s) leave.`,
-        type: 'leave_request'
-      });
-
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'approved': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</span>;
-      case 'rejected': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>;
-      default: return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
-    }
-  };
-
-  return (
+const newRender = `return (
     <div className="relative w-full max-w-lg mx-auto md:max-w-5xl pb-6">
       {/* Background Top Banner (AssayBiz Blue) */}
       <div className="absolute -top-8 -left-4 -right-4 h-64 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
@@ -162,8 +44,8 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                     <div className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500 mb-2">{b.used} used of {b.annual}</div>
                     <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${pct >= 100 ? 'bg-red-500' : color}`}
-                        style={{ width: `${pct}%` }}
+                        className={\`h-2 rounded-full \${pct >= 100 ? 'bg-red-500' : color}\`}
+                        style={{ width: \`\${pct}%\` }}
                       />
                     </div>
                   </div>
@@ -273,4 +155,12 @@ export default function LeaveManagementPage({ session }: { session: any }) {
       </Dialog>
     </div>
   );
+}`;
+
+if (returnStatementRegex.test(code)) {
+  code = code.replace(returnStatementRegex, newRender);
+  fs.writeFileSync('src/pages/LeaveManagementPage.tsx', code);
+  console.log("LeaveManagementPage patched successfully!");
+} else {
+  console.log("Could not match the return statement in LeaveManagementPage.tsx");
 }
