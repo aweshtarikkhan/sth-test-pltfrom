@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿const fs = require('fs');
+
+const code = `import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
@@ -225,7 +227,7 @@ export default function Dashboard({ session }: { session: any }) {
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-base">Daily Attendance</h3>
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              {todayRecord?.clock_in_time ? `Clocked in at ${format(new Date(todayRecord.clock_in_time), "hh:mm a")}` : 'You have not clocked in yet.'}
+              {todayRecord?.clock_in_time ? \`Clocked in at \${format(new Date(todayRecord.clock_in_time), "hh:mm a")}\` : 'You have not clocked in yet.'}
             </p>
           </div>
           
@@ -395,3 +397,6 @@ export default function Dashboard({ session }: { session: any }) {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/pages/Dashboard.tsx', code);
+console.log("Rewrote Dashboard.tsx");

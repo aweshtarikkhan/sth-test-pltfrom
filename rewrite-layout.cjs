@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿const fs = require('fs');
+
+let code = fs.readFileSync('src/components/layout/DashboardLayout.tsx', 'utf8');
+
+// The new DashboardLayout with AssayBiz colors and Mobile Bottom Nav
+const newLayout = `import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, LogOut, MessageCircle, Moon, Sun, X, CheckCircle2, Menu } from 'lucide-react';
@@ -114,11 +119,11 @@ export default function DashboardLayout() {
             to={item.path}
             onClick={() => setMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              \`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 \${
                 isActive
                   ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                   : 'text-blue-100 hover:bg-white/10'
-              }`
+              }\`
             }
           >
             <item.icon className="w-5 h-5 mr-3 shrink-0" />
@@ -214,7 +219,7 @@ export default function DashboardLayout() {
                     ) : (
                       <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
                         {notifications.map(n => (
-                          <div key={n.id} className={`p-4 ${!n.is_read ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
+                          <div key={n.id} className={\`p-4 \${!n.is_read ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}\`}>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
                             <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{n.message}</p>
                           </div>
@@ -247,7 +252,7 @@ export default function DashboardLayout() {
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex flex-col items-center gap-1 p-1 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300'}`
+                  \`flex flex-col items-center gap-1 p-1 \${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300'}\`
                 }
               >
                 <item.icon className="w-6 h-6" />
@@ -261,7 +266,7 @@ export default function DashboardLayout() {
             <NavLink
               to="/holidays"
               className={({ isActive }) =>
-                `-mt-8 w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900 transition-transform active:scale-95 ${isActive ? 'bg-orange-600' : 'bg-orange-500'}`
+                \`-mt-8 w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900 transition-transform active:scale-95 \${isActive ? 'bg-orange-600' : 'bg-orange-500'}\`
               }
             >
               <CalendarDays className="w-6 h-6 text-white" />
@@ -277,7 +282,7 @@ export default function DashboardLayout() {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex flex-col items-center gap-1 p-1 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300'}`
+                    \`flex flex-col items-center gap-1 p-1 \${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300'}\`
                   }
                 >
                   <item.icon className="w-6 h-6" />
@@ -291,3 +296,7 @@ export default function DashboardLayout() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/layout/DashboardLayout.tsx', newLayout);
+console.log("Rewrote DashboardLayout.tsx");
