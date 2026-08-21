@@ -167,7 +167,7 @@ export default function DashboardLayout() {
             </Sheet>
 
             {/* Live Clock & Date */}
-            <div className="text-sm">
+            <div className="hidden sm:block text-sm">
               <div className="font-semibold text-gray-900 dark:text-white">
                 {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </div>

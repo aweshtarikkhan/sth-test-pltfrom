@@ -247,7 +247,8 @@ export default function HistoryPage({ session }: { session: any }) {
         </div>
       </div>
 
-      <Card className="shadow-sm border-gray-200 dark:border-slate-700 overflow-hidden dark:bg-slate-800">
+            {/* Desktop View */}
+      <Card className="hidden md:block shadow-sm border-gray-200 dark:border-slate-700 overflow-hidden dark:bg-slate-800">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left min-w-[600px]">
             <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-400 font-medium border-b border-gray-200 dark:border-slate-700">
@@ -331,6 +332,71 @@ export default function HistoryPage({ session }: { session: any }) {
           </table>
         </div>
       </Card>
+
+
+      {/* Mobile View */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <p className="text-center text-gray-500 py-4">Loading records...</p>
+        ) : records.length === 0 ? (
+          <p className="text-center text-gray-500 py-4">No attendance records found.</p>
+        ) : (
+          records.map((record) => {
+            const reg = regularizationsMap[record.date];
+            const isPendingReg = reg && reg.status === 'pending';
+            const isApprovedReg = reg && reg.status === 'approved';
+            
+            return (
+              <Card key={record.id} className="p-4 shadow-sm border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-3 mb-3">
+                  <div className="font-semibold text-gray-900 dark:text-white">
+                    {format(parseISO(record.date), 'EEE, MMM dd')}
+                  </div>
+                  <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border ${getStatusColor(record.status)}`}>
+                    {getStatusIcon(record.status)}
+                    <span className="ml-1">{formatStatusLabel(record.status)}</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-slate-400">Clock In</span>
+                    <span className="font-medium text-gray-800 dark:text-slate-200">
+                      {record.clock_in_time ? format(new Date(record.clock_in_time), 'hh:mm a') : '-'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-slate-400">Clock Out</span>
+                    <span className="font-medium text-gray-800 dark:text-slate-200">
+                      {record.clock_out_time ? format(new Date(record.clock_out_time), 'hh:mm a') : '-'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="pt-2 border-t border-gray-100 dark:border-slate-700 flex justify-end">
+                  {isPendingReg ? (
+                    <span className="text-xs font-medium text-amber-600">Regularization Pending</span>
+                  ) : isApprovedReg ? (
+                    <span className="text-xs font-medium text-green-600">Regularized</span>
+                  ) : (
+                    record.status !== 'holiday' && record.status !== 'approved_leave' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openRegularizeModal(record.date, record.clock_in_time, record.clock_out_time)}
+                        className="text-xs h-7"
+                      >
+                        Regularize
+                      </Button>
+                    )
+                  )}
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
 
       <RegularizeDialog
         open={regDialogOpen}
