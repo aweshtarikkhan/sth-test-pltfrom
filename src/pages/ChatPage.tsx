@@ -346,9 +346,9 @@ export default function ChatPage({ session }: { session: any }) {
         <div className="text-sm text-slate-500 font-medium">Logged in as: <span className="text-blue-600 dark:text-blue-400">@{employee.username}</span></div>
       </div>
 
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Sidebar */}
-        <Card className="w-72 flex flex-col shadow-sm border-gray-200 dark:border-slate-700 dark:bg-slate-800 shrink-0">
+        <Card className="w-full md:w-72 h-[35vh] md:h-full flex flex-col shadow-sm border-gray-200 dark:border-slate-700 dark:bg-slate-800 shrink-0">
           <CardHeader className="py-3 border-b border-gray-200 dark:border-slate-700 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center dark:text-white">
               <MessageSquare className="w-4 h-4 mr-2 text-blue-500" />

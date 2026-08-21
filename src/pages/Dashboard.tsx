@@ -328,7 +328,7 @@ export default function Dashboard({ session }: { session: any }) {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Level Actions */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, {employee.name.split(' ')[0]}!</h1>
           {employeeShift && (
@@ -350,7 +350,7 @@ export default function Dashboard({ session }: { session: any }) {
             </p>
           )}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
           <Button variant="outline" className="dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => navigate('/leaves')}>Apply for Leave</Button>
           <Button variant="outline" className="dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => setChangePasswordOpen(true)}>Change Password</Button>
         </div>
