@@ -30,6 +30,9 @@ export default function ChatPage({ session }: { session: any }) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'chats' | 'requests'>('chats');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   // Load current employee profile
   useEffect(() => {
@@ -207,9 +210,6 @@ export default function ChatPage({ session }: { session: any }) {
       .subscribe();
 
   
-  const [sidebarTab, setSidebarTab] = useState<'chats' | 'requests'>('chats');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loadingMessages, setLoadingMessages] = useState(false); // we reuse loading for now, or just default false since it wasn't there
 
   const connectionsMap = connections.reduce((acc: any, conn: any) => {
     const otherId = conn.sender_id === employee?.id ? conn.receiver_id : conn.sender_id;
