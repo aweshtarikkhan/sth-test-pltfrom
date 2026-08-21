@@ -405,7 +405,7 @@ function ChatPage({ session }: { session: any }) {
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto h-[calc(100vh-7rem)] md:h-[calc(100vh-3rem)] flex flex-col">
+    <div className="relative w-full max-w-6xl mx-auto h-[calc(100dvh-9rem)] md:h-[calc(100vh-6rem)] flex flex-col">
       {/* Background Top Banner (AssayBiz Blue) */}
       <div className="absolute -top-8 -left-4 -right-4 h-48 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
 
