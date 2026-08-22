@@ -7,7 +7,10 @@ import HistoryPage from './pages/HistoryPage';
 import LeaveManagementPage from './pages/LeaveManagementPage';
 import HolidaysPage from './pages/HolidaysPage';
 import ChatPage from './pages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import DashboardLayout from './components/layout/DashboardLayout';
+import InstallPrompt from './components/InstallPrompt';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
@@ -47,10 +50,13 @@ function App() {
             <Route path="/leaves" element={<LeaveManagementPage session={session} />} />
             <Route path="/holidays" element={<HolidaysPage session={session} />} />
             <Route path="/chat" element={<ChatPage session={session} />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage session={session} />} />
           </Route>
         )}
         <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
       </Routes>
+      <InstallPrompt />
       <Toaster />
     </BrowserRouter>
   );

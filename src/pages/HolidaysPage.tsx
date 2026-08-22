@@ -41,70 +41,79 @@ export default function HolidaysPage({ session }: { session: any }) {
   const upcomingHolidays = holidays.filter(h => new Date(h.date) >= new Date());
   const pastHolidays = holidays.filter(h => new Date(h.date) < new Date());
 
+  // Group by month
+  const groupedHolidays = upcomingHolidays.reduce((acc, curr) => {
+    const month = format(parseISO(curr.date), 'MMMM yyyy');
+    if (!acc[month]) acc[month] = [];
+    acc[month].push(curr);
+    return acc;
+  }, {} as Record<string, any[]>);
+
   return (
-    <div className="relative w-full max-w-lg mx-auto md:max-w-5xl pb-6">
-      {/* Background Top Banner (AssayBiz Blue) */}
-      <div className="absolute -top-8 -left-4 -right-4 h-64 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
+    <div className="relative w-full max-w-lg mx-auto md:max-w-5xl pb-4 px-4 pt-4">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Company Holidays</h1>
+        <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Public and company holidays for the year</p>
+      </div>
 
-      <div className="relative z-10 space-y-6 mt-2">
-        <div className="px-1 md:px-0">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-white md:dark:text-white mb-1">Company Holidays</h1>
-          <p className="text-gray-500 dark:text-slate-400 sm:text-blue-100/80 md:dark:text-slate-400 text-sm font-medium">Public and company holidays for the year</p>
-        </div>
-
-        {loading ? (
-          <p className="text-gray-500 dark:text-slate-400 py-8 text-center font-bold">Loading holidays...</p>
-        ) : (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white sm:text-white md:dark:text-white mb-4 px-1 md:px-0">Upcoming Holidays</h2>
-              {upcomingHolidays.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-700 text-center">
-                  <div className="w-16 h-16 bg-blue-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CalendarDays className="w-8 h-8 text-blue-200 dark:text-slate-600" />
-                  </div>
-                  <p className="text-gray-900 dark:text-white font-bold">No upcoming holidays.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {upcomingHolidays.map((holiday) => (
-                    <div key={holiday.id} className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border-l-4 border-orange-500 border-y border-r border-y-gray-100 border-r-gray-100 dark:border-y-slate-700 dark:border-r-slate-700 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-base">{holiday.name}</h3>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500 mt-0.5">{holiday.type} Holiday</p>
-                      </div>
-                      <div className="text-right bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-2xl">
-                        <p className="font-black text-orange-600 dark:text-orange-400">{format(parseISO(holiday.date), 'MMM dd')}</p>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-orange-400/80 dark:text-orange-500/80">{format(parseISO(holiday.date), 'EEEE')}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+      {loading ? (
+        <p className="text-gray-500 dark:text-slate-400 py-8 text-center font-bold">Loading holidays...</p>
+      ) : (
+        <div className="space-y-6">
+          {Object.keys(groupedHolidays).length === 0 ? (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-700 text-center">
+              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CalendarDays className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+              </div>
+              <p className="text-gray-900 dark:text-white font-bold">No upcoming holidays.</p>
             </div>
-
-            {pastHolidays.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 px-1 md:px-0">Past Holidays</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75">
-                  {pastHolidays.map((holiday) => (
-                    <div key={holiday.id} className="bg-gray-50/80 dark:bg-slate-900/40 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-gray-600 dark:text-slate-300 text-base">{holiday.name}</h3>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500 mt-0.5">{holiday.type} Holiday</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-black text-gray-500 dark:text-slate-400">{format(parseISO(holiday.date), 'MMM dd')}</p>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500">{format(parseISO(holiday.date), 'EEEE')}</p>
+          ) : (
+            Object.entries(groupedHolidays).map(([month, monthHolidays]) => (
+              <div key={month} className="space-y-3">
+                <h2 className="text-sm font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider pl-1">{month}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {monthHolidays.map((holiday) => (
+                    <div key={holiday.id} className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                      <div className="flex gap-4 items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex flex-col items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 leading-none mb-1">{format(parseISO(holiday.date), 'MMM')}</span>
+                          <span className="text-lg font-black text-[#0a192f] dark:text-white leading-none">{format(parseISO(holiday.date), 'dd')}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900 dark:text-white text-base">{holiday.name}</h3>
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500 mt-0.5">{format(parseISO(holiday.date), 'EEEE')} • {holiday.type} Holiday</p>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            ))
+          )}
+
+          {pastHolidays.length > 0 && (
+            <div className="pt-4">
+              <h2 className="text-sm font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider pl-1 mb-3">Past Holidays</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-60">
+                {pastHolidays.map((holiday) => (
+                  <div key={holiday.id} className="bg-gray-50/80 dark:bg-slate-900/40 rounded-3xl p-4 border border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-12 h-12 rounded-2xl bg-gray-200/50 dark:bg-slate-800 flex flex-col items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 leading-none mb-1">{format(parseISO(holiday.date), 'MMM')}</span>
+                        <span className="text-lg font-black text-gray-700 dark:text-slate-300 leading-none">{format(parseISO(holiday.date), 'dd')}</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-600 dark:text-slate-300 text-base">{holiday.name}</h3>
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-slate-500 mt-0.5">{format(parseISO(holiday.date), 'EEEE')} • {holiday.type}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

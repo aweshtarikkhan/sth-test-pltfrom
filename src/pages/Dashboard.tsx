@@ -97,6 +97,9 @@ export default function Dashboard({ session }: { session: any }) {
   }, [session]);
 
   const handleClockInOut = async (type: 'in' | 'out') => {
+    const confirmMessage = type === 'in' ? "Are you sure you want to Clock In?" : "Are you sure you want to Clock Out?";
+    if (!window.confirm(confirmMessage)) return;
+
     try {
       setActionLoading(true);
       const now = new Date().toISOString();
@@ -150,6 +153,13 @@ export default function Dashboard({ session }: { session: any }) {
 
   const todayEffectiveStatus = todayRecord ? getEffectiveAttendanceStatus(todayRecord, employeeShift) : null;
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  };
+  
   return (
     <div className="relative w-full max-w-lg mx-auto md:max-w-4xl pb-6">
       {/* Background Top Banner (AssayBiz Blue) */}
@@ -160,7 +170,7 @@ export default function Dashboard({ session }: { session: any }) {
         {/* Welcome Card */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex justify-between items-center border border-gray-100 dark:border-slate-700">
           <div className="flex-1">
-            <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Good Morning,</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">{getGreeting()}</p>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               {employee?.name ? employee.name.split(' ')[0] : 'Employee'}! 👋
             </h2>
@@ -187,42 +197,50 @@ export default function Dashboard({ session }: { session: any }) {
             </div>
           </div>
           
-          {/* Avatar Illustration Placeholder */}
-          <div className="w-24 h-24 shrink-0 bg-blue-100 dark:bg-slate-700 rounded-full flex items-center justify-center shadow-inner relative overflow-hidden ml-2">
-            <User className="w-12 h-12 text-blue-300 dark:text-slate-500" />
+          {/* Avatar / Profile Picture */}
+          <div className="w-24 h-24 shrink-0 bg-blue-100 dark:bg-slate-700 rounded-full flex items-center justify-center shadow-inner relative overflow-hidden ml-2 border-2 border-white dark:border-slate-800">
+            {(employee?.avatar_url || employee?.profile_image) ? (
+              <img 
+                src={employee.avatar_url || employee.profile_image} 
+                alt="Profile" 
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <User className="w-12 h-12 text-blue-300 dark:text-slate-500" />
+            )}
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <div 
-            onClick={() => navigate('/leaves')}
-            className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all active:scale-95"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        {/* Upcoming Holiday */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-slate-700">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2 text-blue-900 dark:text-white font-bold text-sm">
+                <CalendarDays className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                Next Holiday
+              </div>
+              <Button variant="ghost" className="h-6 text-xs text-blue-600 dark:text-blue-400 p-0 hover:bg-transparent hover:text-blue-800" onClick={() => navigate('/holidays')}>View All</Button>
             </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">Apply for Leave</p>
-              <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">Request time off</p>
-            </div>
+            
+            {upcomingHolidays.length === 0 ? (
+              <p className="text-xs text-blue-500/80 dark:text-slate-400">No upcoming holidays.</p>
+            ) : (
+              <div>
+                {upcomingHolidays.slice(0, 1).map((h, i) => (
+                  <div key={i} className="flex justify-between items-center bg-white dark:bg-slate-900/50 p-3 rounded-xl shadow-sm border border-white dark:border-slate-700/50">
+                    <div>
+                      <p className="font-bold text-sm text-gray-900 dark:text-white">{h.name}</p>
+                      <p className="text-[10px] font-medium text-gray-500 dark:text-slate-400 mt-1">{format(new Date(h.date), 'dd MMMM yyyy')}</p>
+                    </div>
+                    <div className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap shadow-inner">
+                      In {Math.ceil((new Date(h.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div 
-            onClick={() => setChangePasswordOpen(true)}
-            className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all active:scale-95"
-          >
-            <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-              <Lock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">Password</p>
-              <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">Update password</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Clock In / Out Main Action Widget */}
+          {/* Clock In / Out Main Action Widget */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-between">
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-base">Daily Attendance</h3>
@@ -323,138 +341,23 @@ export default function Dashboard({ session }: { session: any }) {
           </div>
         </div>
 
-        {/* Leaves Left */}
-        <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl p-5 shadow-sm border border-blue-100 dark:border-blue-900/30 flex justify-between items-center relative overflow-hidden">
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center shrink-0">
-              <CalendarDays className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+        {/* Apply for Leave Action */}
+          <div 
+            onClick={() => navigate('/leaves')}
+            className="bg-blue-50 dark:bg-blue-900/20 rounded-3xl p-5 shadow-sm border border-blue-100 dark:border-blue-800 flex justify-between items-center relative overflow-hidden cursor-pointer hover:shadow-md transition-all active:scale-95 mt-3"
+          >
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center shrink-0">
+                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-black text-gray-900 dark:text-white leading-none mb-1">Apply for Leave</span>
+                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase">Request Time Off</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black text-gray-900 dark:text-white leading-none mb-1">{stats.leaves_left}</span>
-              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase">Leaves Left</span>
-            </div>
+            <ChevronRight className="w-6 h-6 text-blue-300 dark:text-blue-500 relative z-10" />
+            <FileText className="w-24 h-24 text-blue-500/10 dark:text-blue-400/5 absolute -right-4 -bottom-4 transform rotate-12 pointer-events-none" />
           </div>
-          <FileText className="w-24 h-24 text-blue-500/10 dark:text-blue-400/5 absolute -right-4 -bottom-4 transform rotate-12 pointer-events-none" />
-        </div>
-
-        
-        {/* Attendance Calendar */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 mt-5">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900 dark:text-white text-base">Monthly Attendance</h3>
-            <span className="text-xs font-semibold px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-              {format(new Date(), 'MMMM yyyy')}
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-7 gap-1 text-center mb-2">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-              <div key={i} className="text-[10px] font-bold text-gray-400 dark:text-slate-500">{day}</div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7 gap-1">
-            {(() => {
-              const monthStart = startOfMonth(new Date());
-              const monthEnd = endOfMonth(monthStart);
-              const startDate = startOfWeek(monthStart);
-              const endDate = endOfWeek(monthEnd);
-              const dateFormat = "yyyy-MM-dd";
-              const days = eachDayOfInterval({ start: startDate, end: endDate });
-
-              return days.map((day, i) => {
-                const dateStr = format(day, dateFormat);
-                const record = monthRecords.find(r => r.date === dateStr);
-                
-                let bgColor = "bg-gray-50 dark:bg-slate-800/50 text-gray-700 dark:text-slate-300"; // default/future
-                let dotColor = null;
-
-                if (!isSameMonth(day, monthStart)) {
-                  bgColor = "text-gray-300 dark:text-slate-600 opacity-50"; // out of month
-                } else if (new Date(dateStr) > new Date()) {
-                  // Future days in current month
-                  bgColor = "bg-gray-50 dark:bg-slate-800/50 text-gray-400 dark:text-slate-500";
-                } else if (record) {
-                  const status = record.status;
-                  if (status === 'present') {
-                    bgColor = "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-bold";
-                    dotColor = "bg-green-500";
-                  } else if (status === 'absent') {
-                    bgColor = "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 font-bold";
-                    dotColor = "bg-red-500";
-                  } else if (status === 'half_day' || status === 'half-day') {
-                    bgColor = "bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 font-bold";
-                    dotColor = "bg-orange-500";
-                  } else if (status === 'late') {
-                    bgColor = "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 font-bold";
-                    dotColor = "bg-amber-500";
-                  } else if (status === 'holiday') {
-                    bgColor = "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-bold";
-                  } else if (status === 'approved_leave' || status === 'paid_leave') {
-                    bgColor = "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 font-bold";
-                  }
-                } else if (day.getDay() === 0 || day.getDay() === 6) {
-                   // Weekend fallback if no record
-                   bgColor = "bg-gray-100 dark:bg-slate-800 text-gray-500";
-                } else {
-                   // Past weekday with no record = Absent normally, but let's just make it red
-                   bgColor = "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 font-bold";
-                   dotColor = "bg-red-500";
-                }
-
-                const isToday = isSameDay(day, new Date());
-                if (isToday) {
-                  bgColor += " ring-2 ring-orange-500 ring-offset-1 dark:ring-offset-slate-900";
-                }
-
-                return (
-                  <div key={i} className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs relative ${bgColor}`}>
-                    <span>{format(day, 'd')}</span>
-                    {dotColor && <div className={`w-1 h-1 rounded-full absolute bottom-1 ${dotColor}`}></div>}
-                  </div>
-                );
-              });
-            })()}
-          </div>
-          
-          {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-3 mt-4 text-[10px] font-medium text-gray-500 dark:text-slate-400">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Present</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Absent</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Late</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-orange-500"></div> Half Day</span>
-          </div>
-        </div>
-
-
-        {/* Upcoming Holiday */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-sm">
-              <CalendarDays className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              Upcoming Holiday
-            </div>
-            <Button variant="ghost" className="h-6 text-xs text-blue-600 dark:text-blue-400 p-0 hover:bg-transparent" onClick={() => navigate('/holidays')}>View All</Button>
-          </div>
-          
-          {upcomingHolidays.length === 0 ? (
-            <p className="text-xs text-gray-500 dark:text-slate-400">No upcoming holidays.</p>
-          ) : (
-            <div className="space-y-3">
-              {upcomingHolidays.map((h, i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-slate-700/50 last:border-0 last:pb-0">
-                  <div>
-                    <p className="font-bold text-sm text-gray-900 dark:text-white">{h.name}</p>
-                    <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">{format(new Date(h.date), 'dd MMMM yyyy')}</p>
-                  </div>
-                  <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold whitespace-nowrap">
-                    In {Math.ceil((new Date(h.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
       </div>
 
