@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, startOfMonth, endOfMonth, parseISO, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, CalendarDays, MapPin, CheckCircle2, AlertCircle, XCircle, FileText, Lock, User, ChevronRight, Fingerprint } from 'lucide-react';
+import { Clock, CalendarDays, MapPin, CheckCircle2, AlertCircle, XCircle, FileText, Lock, User, ChevronRight, Fingerprint, Umbrella } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getEffectiveAttendanceStatus } from '@/lib/shift-utils';
@@ -20,6 +20,7 @@ export default function Dashboard({ session }: { session: any }) {
   const [employeeShift, setEmployeeShift] = useState<any>(null);
   const [monthRecords, setMonthRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvedLeaveToday, setApprovedLeaveToday] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -95,6 +96,47 @@ export default function Dashboard({ session }: { session: any }) {
   useEffect(() => {
     loadData();
   }, [session]);
+
+  
+  const handleCancelLeave = async (leaveId: string) => {
+    if (!window.confirm("Are you sure you want to cancel your leave for today? You will need to Check In after cancelling.")) return;
+    try {
+      setActionLoading(true);
+      const { data: leaveReq } = await supabase.from('leaves').select('*').eq('id', leaveId).single();
+      if (!leaveReq) throw new Error("Leave not found");
+
+      const { error } = await supabase.from('leaves').update({ status: 'cancelled' }).eq('id', leaveId);
+      if (error) throw error;
+      
+      // Refund balance
+      try {
+        const { data: bData } = await supabase.from('employee_leave_balances')
+          .select('used')
+          .eq('employee_id', leaveReq.employee_id)
+          .eq('leave_type', leaveReq.leave_type)
+          .maybeSingle();
+          
+        let currentUsed = bData?.used || 0;
+        currentUsed = Math.max(0, currentUsed - leaveReq.days);
+        
+        await supabase.from('employee_leave_balances').upsert({
+          org_id: leaveReq.org_id,
+          employee_id: leaveReq.employee_id,
+          leave_type: leaveReq.leave_type,
+          used: currentUsed
+        }, { onConflict: 'employee_id,leave_type' });
+      } catch(e) {
+        console.error("Failed to refund balance", e);
+      }
+      
+      toast({ title: 'Leave Cancelled', description: 'Your leave has been cancelled. You can now clock in.' });
+      await loadData();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleClockInOut = async (type: 'in' | 'out') => {
     const confirmMessage = type === 'in' ? "Are you sure you want to Clock In?" : "Are you sure you want to Clock Out?";
