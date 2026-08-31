@@ -528,7 +528,7 @@ export default function DashboardLayout() {
 
         {/* Page Content */}
         {location.pathname === '/chat' ? (
-          <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative flex flex-col">
+          <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative flex flex-col pb-[80px] md:pb-0">
             <Outlet />
           </div>
         ) : (
@@ -597,3 +597,4 @@ export default function DashboardLayout() {
     </div>
   );
 }
+
