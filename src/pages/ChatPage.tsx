@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,6 +118,25 @@ function ChatPage({ session }: { session: any }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+
+  const location = useLocation();
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (employeeList.length > 0 && location.search.includes('support=true') && !initializedRef.current) {
+      initializedRef.current = true;
+      const hr = employeeList.find(e => 
+        e.designation?.toLowerCase().includes('hr') || 
+        e.designation?.toLowerCase().includes('admin') || 
+        e.designation?.toLowerCase().includes('manager')
+      );
+      if (hr) {
+        setSelectedType('dm');
+        setSelectedTarget(hr);
+      }
+    }
+  }, [employeeList, location]);
+
 
   // Load current employee profile
   useEffect(() => {

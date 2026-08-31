@@ -36,7 +36,7 @@ export default function SettingsPage({ session }: { session: any }) {
   const settingsOptions = [
     { name: 'Profile Settings', icon: User, path: '/profile', description: 'Update your personal details' },
     { name: 'Holiday List', icon: CalendarDays, path: '/holidays', description: 'View company holidays' },
-    { name: 'Help & Support', icon: HelpCircle, path: '/chat', description: 'Contact HR or IT' },
+    { name: 'Help & Support', icon: HelpCircle, path: '/chat?support=true', description: 'Contact HR or IT' },
   ];
 
   return (
