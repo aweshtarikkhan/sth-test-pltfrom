@@ -5,6 +5,7 @@ import {  LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, Lo
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import logoImg from '@/assets/logo.png';
 
 export default function DashboardLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -382,8 +383,9 @@ export default function DashboardLayout() {
             <div className="flex-1">
               <Outlet />
             </div>
-            <div className="w-full text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-8 shrink-0">
-              Powered by AassayBiz
+            <div className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-8 shrink-0 pb-4">
+              <span>Powered by</span>
+              <img src={logoImg} alt="AassayBiz" className="h-4 object-contain opacity-70" />
             </div>
           </div>
         </div>
