@@ -64,14 +64,29 @@ export default function Dashboard({ session }: { session: any }) {
           supabase.from('attendances').select('*').eq('employee_id', empData.id).gte('date', start).lte('date', end),
           supabase.from('attendances').select('*').eq('employee_id', empData.id).eq('date', today).maybeSingle(),
           supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', today).order('date', { ascending: true }).limit(2),
-          supabase.from('shifts').select('*').eq('id', empData.shift_id).single(),
+          (supabase as any).from('employee_shifts').select('*, shifts(*)').eq('employee_id', empData.id).maybeSingle(),
           supabase.from('leave_balances').select('*').eq('employee_id', empData.id),
           supabase.from('organizations').select('weekly_offs').eq('id', empData.org_id).single(),
           supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', start).lte('date', end),
           supabase.from('leaves').select('*').eq('employee_id', empData.id).eq('status', 'approved').lte('start_date', end).gte('end_date', start)
         ]);
 
-        if (shiftData) setEmployeeShift(shiftData);
+        let resolvedShift = shiftData?.shifts || null;
+        if (!resolvedShift && empData.shift_id) {
+          const { data: directShift } = await supabase.from('shifts').select('*').eq('id', empData.shift_id).maybeSingle();
+          if (directShift) resolvedShift = directShift;
+        }
+        if (!resolvedShift) {
+          const { data: orgShifts } = await (supabase as any)
+            .from('shifts')
+            .select('*')
+            .eq('org_id', empData.org_id)
+            .order('is_default', { ascending: false });
+          if (orgShifts && orgShifts.length > 0) {
+            resolvedShift = orgShifts.find((s: any) => s.is_default) || orgShifts[0];
+          }
+        }
+        setEmployeeShift(resolvedShift);
         if (monthData) setMonthRecords(monthData);
         if (todayData) setTodayRecord(todayData);
         if (holsData) setUpcomingHolidays(holsData);
@@ -96,7 +111,7 @@ export default function Dashboard({ session }: { session: any }) {
           const existing = attMap[ds];
 
           if (existing) {
-            const status = getEffectiveAttendanceStatus(existing, shiftData);
+            const status = getEffectiveAttendanceStatus(existing, resolvedShift);
             if (status === 'present') p++;
             else if (status === 'late') l++;
             else if (status === 'half_day' || status === 'half-day') h++;
