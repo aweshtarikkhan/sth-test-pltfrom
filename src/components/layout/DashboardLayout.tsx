@@ -475,17 +475,23 @@ export default function DashboardLayout() {
         )}
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 transition-colors relative pb-28 md:pb-8 pt-4 md:pt-0">
-          <div className="min-h-[calc(100%-40px)] flex flex-col">
-            <div className="flex-1">
-              <Outlet />
-            </div>
-            <div className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-8 shrink-0 pb-4">
-              <span>Powered by</span>
-              <img src={logoImg} alt="AassayBiz" className="h-4 object-contain opacity-70" />
+        {location.pathname === '/chat' ? (
+          <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative flex flex-col">
+            <Outlet />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 transition-colors relative pb-28 md:pb-8 pt-4 md:pt-0">
+            <div className="min-h-[calc(100%-40px)] flex flex-col">
+              <div className="flex-1">
+                <Outlet />
+              </div>
+              <div className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-8 shrink-0 pb-4">
+                <span>Powered by</span>
+                <img src={logoImg} alt="AassayBiz" className="h-4 object-contain opacity-70" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Mobile Bottom Navigation - AassayBiz Style */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 flex justify-around items-end px-2 pb-safe pt-2 z-[9999] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] min-h-[70px]" style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>

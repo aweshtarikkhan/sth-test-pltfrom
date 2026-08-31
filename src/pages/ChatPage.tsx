@@ -500,7 +500,7 @@ const [showMentions, setShowMentions] = React.useState(false);
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto h-[calc(100dvh-5rem)] md:h-[calc(100vh-2rem)] flex flex-col pb-4 md:pb-4 px-2 pt-2">
+    <div className="relative w-full max-w-6xl mx-auto h-full flex flex-col pb-4 px-2 pt-2">
       <div className={`relative z-10 flex justify-between items-end mb-4 px-2 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Team Chat</h1>
