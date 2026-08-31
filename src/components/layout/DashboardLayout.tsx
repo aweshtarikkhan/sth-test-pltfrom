@@ -87,9 +87,7 @@ export default function DashboardLayout() {
         
         if (empData) {
           const { data: notifs } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('employee_id', empData.id)
+            .from('notifications').select('*').eq('user_id', empData.auth_user_id)
             .order('created_at', { ascending: false })
             .limit(10);
           if (notifs) {
@@ -100,18 +98,35 @@ export default function DashboardLayout() {
           }
 
           // Check for unread chat messages
-          try {
-            const { data: unreadMsgs } = await supabase
-              .from('messages')
-              .select('id')
-              .eq('receiver_id', empData.id)
-              .eq('is_read', false);
-            setUnreadChats(unreadMsgs?.length || 0);
-          } catch {
-            // messages table may not exist
-            setUnreadChats(0);
+            try {
+              const { data: unreadMsgs } = await supabase
+                .from('chat_messages')
+                .select('*, sender:employees!sender_id(name)')
+                .eq('receiver_id', empData.id)
+                .eq('status', 'sent');
+                
+              if (unreadMsgs && unreadMsgs.length > 0) {
+                 setUnreadChats(unreadMsgs.length);
+                 const chatNotifs = unreadMsgs.map(m => ({
+                    id: 'chat-' + m.id,
+                    title: 'New Message from ' + (m.sender?.name || 'Someone'),
+                    message: m.message || (m.file_url ? 'Sent an attachment' : 'Sent a message'),
+                    is_read: false,
+                    type: 'chat',
+                    created_at: m.created_at
+                 }));
+                 setNotifications(prev => {
+                    const combined = [...chatNotifs, ...prev];
+                    combined.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                    return combined.slice(0, 15);
+                 });
+              } else {
+                 setUnreadChats(0);
+              }
+            } catch (err) {
+              setUnreadChats(0);
+            }
           }
-        }
       }
     };
     checkUser();
@@ -168,8 +183,7 @@ export default function DashboardLayout() {
     if (!employee) return;
     await supabase
       .from('notifications')
-      .update({ is_read: true })
-      .eq('employee_id', employee.id)
+      .update({ is_read: true }).eq('user_id', employee.auth_user_id)
       .eq('is_read', false);
     setNotifications(notifications.map(n => ({ ...n, is_read: true })));
     setUnreadLeaves(0);
