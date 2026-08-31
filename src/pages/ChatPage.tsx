@@ -705,7 +705,7 @@ function ChatPage({ session }: { session: any }) {
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-3 sm:gap-4 sm:space-x-0 pt-4 mt-2 border-t border-gray-100 dark:border-slate-700/50">
             <Button variant="outline" onClick={() => setShowCreateGroup(false)} disabled={creatingGroup} className="border-gray-200 dark:border-slate-700 dark:text-slate-300 rounded-xl font-bold h-10">
               Cancel
             </Button>
