@@ -57,7 +57,29 @@ function ChatPage({ session }: { session: any }) {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  const [showMentions, setShowMentions] = React.useState(false);
+  
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const [employeeList, setEmployeeList] = useState<any[]>([]);
+  const [groupList, setGroupList] = useState<any[]>([]);
+  const [connections, setConnections] = useState<any[]>([]);
+  
+  const [selectedType, setSelectedType] = useState<'dm' | 'group' | 'request' | null>(null);
+  const [selectedTarget, setSelectedTarget] = useState<any>(null);
+  const [selectedConnection, setSelectedConnection] = useState<any>(null);
+  
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+  const [processingRequest, setProcessingRequest] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+
+const [showMentions, setShowMentions] = React.useState(false);
   const [mentionQuery, setMentionQuery] = React.useState('');
   const [groupMembers, setGroupMembers] = React.useState<any[]>([]);
 
@@ -96,26 +118,6 @@ function ChatPage({ session }: { session: any }) {
     setShowMentions(false);
   };
 
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-
-  const [employeeList, setEmployeeList] = useState<any[]>([]);
-  const [groupList, setGroupList] = useState<any[]>([]);
-  const [connections, setConnections] = useState<any[]>([]);
-  
-  const [selectedType, setSelectedType] = useState<'dm' | 'group' | 'request' | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<any>(null);
-  const [selectedConnection, setSelectedConnection] = useState<any>(null);
-  
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [newGroupName, setNewGroupName] = useState("");
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [creatingGroup, setCreatingGroup] = useState(false);
-  const [processingRequest, setProcessingRequest] = useState(false);
-  
-  const [searchQuery, setSearchQuery] = useState('');
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
