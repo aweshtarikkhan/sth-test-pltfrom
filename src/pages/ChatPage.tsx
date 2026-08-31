@@ -8,10 +8,93 @@ import { format } from 'date-fns';
 import { Send, UserCircle2, Users, MessageSquare, Plus, Check, CheckCheck, UserPlus, X, ShieldAlert, Search, ChevronLeft, Phone, Video, Info, MessageCircle, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
+
+function GroupMembersList({ groupId, supabase, currentUserId, employeeList }: any) {
+  const [members, setMembers] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchMembers = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('chat_group_members')
+        .select('employee_id')
+        .eq('group_id', groupId);
+      
+      if (data) {
+        const memberIds = data.map((d: any) => d.employee_id);
+        const mems = employeeList.filter((e: any) => memberIds.includes(e.id));
+        setMembers(mems);
+      }
+      setLoading(false);
+    };
+    if (groupId) fetchMembers();
+  }, [groupId]);
+
+  if (loading) return <div className="text-sm text-gray-400">Loading members...</div>;
+  if (members.length === 0) return <div className="text-sm text-gray-400">No members found.</div>;
+
+  return (
+    <>
+      {members.map(m => (
+        <div key={m.id} className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-slate-300 overflow-hidden">
+            {m.avatar_url || m.profile_image ? <img src={m.avatar_url || m.profile_image} className="w-full h-full object-cover" /> : (m.name || '?').charAt(0)}
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{m.name} {m.id === currentUserId && '(You)'}</p>
+            <p className="text-[10px] text-gray-500 truncate">{m.designation || 'Employee'}</p>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function ChatPage({ session }: { session: any }) {
   const [employee, setEmployee] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+
+  const [showMentions, setShowMentions] = React.useState(false);
+  const [mentionQuery, setMentionQuery] = React.useState('');
+  const [groupMembers, setGroupMembers] = React.useState<any[]>([]);
+
+  // When selectedTarget changes (if group), fetch members for mentions
+  React.useEffect(() => {
+    if (selectedType === 'group' && selectedTarget) {
+      supabase.from('chat_group_members').select('employee_id').eq('group_id', selectedTarget.id).then(({data}) => {
+        if (data) {
+          const ids = data.map((d: any) => d.employee_id);
+          setGroupMembers(employeeList.filter(e => ids.includes(e.id)));
+        }
+      });
+    }
+  }, [selectedTarget, selectedType, employeeList]);
+
+  const handleInputText = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewMessage(val);
+    
+    if (selectedType === 'group') {
+      const lastWord = val.split(' ').pop() || '';
+      if (lastWord.startsWith('@')) {
+        setShowMentions(true);
+        setMentionQuery(lastWord.substring(1).toLowerCase());
+      } else {
+        setShowMentions(false);
+      }
+    }
+  };
+
+  const handleMentionSelect = (user: any) => {
+    const words = newMessage.split(' ');
+    words.pop();
+    const newMsg = words.join(' ') + (words.length > 0 ? ' ' : '') + '@' + user.name.replace(/\s+/g, '') + ' ';
+    setNewMessage(newMsg);
+    setShowMentions(false);
+  };
+
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -562,12 +645,11 @@ function ChatPage({ session }: { session: any }) {
                     </p>
                   </div>
                 </div>
-                {selectedType === 'dm' && (
-                  <div className="flex gap-1">
-                    
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full" onClick={() => setShowInfoDialog(true)}><Info className="w-4 h-4" /></Button>
-                  </div>
-                )}
+                {(selectedType === 'dm' || selectedType === 'group') && (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full" onClick={() => setShowInfoDialog(true)}><Info className="w-4 h-4" /></Button>
+                    </div>
+                  )}
               </div>
 
               {/* Chat Messages */}
@@ -595,7 +677,7 @@ function ChatPage({ session }: { session: any }) {
                     return (
                       <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                         {showSender && (
-                          <span className="text-[10px] font-bold text-gray-400 mb-1 ml-1 uppercase tracking-wider">@{msg.sender?.username}</span>
+                          <span className="text-[10px] font-bold text-gray-400 mb-1 ml-1 uppercase tracking-wider">@{msg.sender?.name}</span>
                         )}
                         <div
                           className={`max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl flex flex-col shadow-sm ${
@@ -632,10 +714,34 @@ function ChatPage({ session }: { session: any }) {
               {/* Input Area */}
               {(selectedType === 'dm' || selectedType === 'group') && selectedTarget && (
                 <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 shrink-0">
-                  <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+                  
+                  {showMentions && groupMembers.length > 0 && (
+                    <div className="absolute bottom-[70px] left-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 w-64 max-h-48 overflow-y-auto">
+                      <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-slate-700">Mentions</div>
+                      {groupMembers
+                        .filter(m => m.name.toLowerCase().includes(mentionQuery) || (m.username && m.username.toLowerCase().includes(mentionQuery)))
+                        .map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => handleMentionSelect(m)}
+                          className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-slate-700/50 text-left"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] font-bold overflow-hidden">
+                            {m.avatar_url || m.profile_image ? <img src={m.avatar_url || m.profile_image} className="w-full h-full object-cover" /> : (m.name || '?').charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-gray-900 dark:text-white">{m.name}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                    <form onSubmit={handleSendMessage} className="flex gap-2 relative">
                     <Input
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
+                      onChange={handleInputText}
                       placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@' + (selectedTarget?.username || selectedTarget?.name?.replace(/\s+/g, '').toLowerCase() || 'user')}...`}
                       className="flex-1 bg-gray-50 dark:bg-slate-900 border-gray-100 dark:border-slate-700 text-gray-900 dark:text-white rounded-full pl-5 pr-14 h-12 font-medium"
                       disabled={sending}
