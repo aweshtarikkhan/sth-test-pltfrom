@@ -737,8 +737,9 @@ const [showMentions, setShowMentions] = React.useState(false);
               {(selectedType === 'dm' || selectedType === 'group') && selectedTarget && (
                 <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 shrink-0">
                   
-                  {showMentions && groupMembers.length > 0 && (
-                    <div className="absolute bottom-[70px] left-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 w-64 max-h-48 overflow-y-auto">
+                  <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+{showMentions && groupMembers.length > 0 && (
+                    <div className="absolute bottom-full mb-2 right-0 left-0 mx-0 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
                       <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-slate-700">Mentions</div>
                       
                       {groupMembers
@@ -763,7 +764,6 @@ const [showMentions, setShowMentions] = React.useState(false);
                     </div>
                   )}
 
-                    <form onSubmit={handleSendMessage} className="flex gap-2 relative">
                     <Input
                       value={newMessage}
                       onChange={handleInputText}
