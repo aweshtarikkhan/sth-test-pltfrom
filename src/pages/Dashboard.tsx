@@ -199,7 +199,7 @@ export default function Dashboard({ session }: { session: any }) {
           });
           locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
           try {
-            const res = await fetch(https://nominatim.openstreetmap.org/reverse?lat= + locationData.lat + &lon= + locationData.lng + &format=json);
+            const res = await fetch("https://nominatim.openstreetmap.org/reverse?lat=" + locationData.lat + "&lon=" + locationData.lng + "&format=json");
             const geo = await res.json();
             if (geo?.display_name) locationData.address = geo.display_name;
           } catch {}
@@ -507,4 +507,5 @@ export default function Dashboard({ session }: { session: any }) {
     </div>
   );
 }
+
 
