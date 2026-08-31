@@ -133,7 +133,7 @@ export default function DashboardLayout() {
     checkUser();
   }, [navigate]);
 
-    const handleClockInOut = async (type: 'in' | 'out') => {
+  const handleClockInOut = async (type: 'in' | 'out') => {
     if (!employee) return;
     
     const confirmMessage = type === 'in' ? "Are you sure you want to Clock In?" : "Are you sure you want to Clock Out?";
@@ -143,27 +143,54 @@ export default function DashboardLayout() {
     try {
       const now = new Date().toISOString();
       const today = format(new Date(), 'yyyy-MM-dd');
-      
+
+      // Capture GPS location
+      let locationData: { lat: number; lng: number; address?: string } | null = null;
+      try {
+        if (navigator.geolocation) {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 8000,
+              enableHighAccuracy: true,
+              maximumAge: 0,
+            });
+          });
+          locationData = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          // Try to reverse-geocode for address
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${locationData.lat}&lon=${locationData.lng}&format=json`
+            );
+            const geo = await res.json();
+            if (geo?.display_name) locationData.address = geo.display_name;
+          } catch { /* ignore geocoding error */ }
+        }
+      } catch { /* location permission denied — continue without location */ }
+
       if (type === 'in') {
         const { error, data } = await supabase.from('attendances').upsert({
           employee_id: employee.id,
           org_id: employee.org_id,
           date: today,
           clock_in_time: now,
+          clock_in_location: locationData,
           status: 'present'
         }, { onConflict: 'employee_id,date' }).select().single();
         if (error) throw error;
         setTodayRecord(data);
-        toast({ title: 'Clocked In', description: 'Your attendance has been marked.' });
-        // Dispatch custom event to notify Dashboard to refresh if it's open
+        toast({ title: 'Clocked In', description: locationData ? 'Attendance marked with location.' : 'Attendance marked.' });
         window.dispatchEvent(new Event('attendance_updated'));
       } else {
         const { error, data } = await supabase.from('attendances').update({
-          clock_out_time: now
+          clock_out_time: now,
+          clock_out_location: locationData,
         }).eq('id', todayRecord.id).select().single();
         if (error) throw error;
         setTodayRecord(data);
-        toast({ title: 'Clocked Out', description: 'Your shift has ended.' });
+        toast({ title: 'Clocked Out', description: locationData ? 'Clock-out saved with location.' : 'Your shift has ended.' });
         window.dispatchEvent(new Event('attendance_updated'));
       }
     } catch (err: any) {
