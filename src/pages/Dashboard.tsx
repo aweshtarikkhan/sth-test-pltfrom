@@ -278,8 +278,8 @@ export default function Dashboard({ session }: { session: any }) {
             )}
             
             <div className="flex gap-4 text-[10px] font-semibold text-orange-600 dark:text-orange-500">
-              <span className="flex items-center"><div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div> Late up to {employeeShift.late_end?.slice(0,5) || "10:30"}</span>
-              <span className="flex items-center"><div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div> Half day up to {employeeShift.half_day_end?.slice(0,5) || "14:00"}</span>
+              <span className="flex items-center"><div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div> Late up to {employeeShift?.late_end?.slice(0,5) || "10:30"}</span>
+              <span className="flex items-center"><div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div> Half day up to {employeeShift?.half_day_end?.slice(0,5) || "14:00"}</span>
             </div>
           </div>
           
