@@ -30,7 +30,7 @@ function ChatPage({ session }: { session: any }) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'chats' | 'requests'>('chats');
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
 
@@ -226,21 +226,10 @@ function ChatPage({ session }: { session: any }) {
   );
 
   const handleUserSelect = (emp: any) => {
-    const conn = connectionsMap[emp.id];
-    setSelectedTarget(emp);
-    
-    if (!conn) {
-      // Logic for new connection would go here if needed, or handled when sending message
+      setSelectedTarget(emp);
       setSelectedType('dm');
       setSelectedConnection(null);
-    } else if (conn.status === 'pending') {
-      setSelectedType(conn.receiver_id === employee?.id ? 'request' : 'dm');
-      setSelectedConnection(conn);
-    } else {
-      setSelectedType('dm');
-      setSelectedConnection(conn);
-    }
-  };
+    };
 
   return () => {
       supabase.removeChannel(channel);
@@ -263,7 +252,7 @@ function ChatPage({ session }: { session: any }) {
           org_id: employee.org_id,
           sender_id: employee.id,
           receiver_id: selectedTarget.id,
-          status: 'pending'
+          status: 'accepted'
         }).select().single();
         if (!connErr) {
           setSelectedConnection(newConn);
@@ -417,25 +406,9 @@ function ChatPage({ session }: { session: any }) {
         {/* Sidebar */}
         <div className={`w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-100 dark:border-slate-700/50">
-            <div className="flex bg-gray-50 dark:bg-slate-900 rounded-2xl p-1 mb-4">
-              <button
-                onClick={() => setSidebarTab('chats')}
-                className={`flex-1 text-sm font-bold py-2 rounded-xl transition-all ${sidebarTab === 'chats' ? 'bg-white dark:bg-slate-800 text-[#0a192f] dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Chats
-              </button>
-              <button
-                onClick={() => setSidebarTab('requests')}
-                className={`flex-1 text-sm font-bold py-2 rounded-xl transition-all relative ${sidebarTab === 'requests' ? 'bg-white dark:bg-slate-800 text-[#0a192f] dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Requests
-                {pendingRequestsCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
-              </button>
-            </div>
             
-            {sidebarTab === 'chats' && (
+            
+            {true && (
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <Input
@@ -449,8 +422,7 @@ function ChatPage({ session }: { session: any }) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            {sidebarTab === 'chats' ? (
-              <>
+            <>
                 {/* Groups Section */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between px-2 mb-2">
@@ -486,97 +458,77 @@ function ChatPage({ session }: { session: any }) {
                   )}
                 </div>
 
-                {/* Direct Messages Section */}
-                <div>
-                  <div className="px-2 mb-2">
-                    <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Direct Messages</span>
+                {/* HR & Management Section */}
+                  <div className="mb-4 mt-6">
+                    <div className="px-2 mb-2">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">HR & Management</span>
+                    </div>
+                    {filteredEmployees.filter(e => e.designation?.toLowerCase().includes('hr') || e.designation?.toLowerCase().includes('admin') || e.designation?.toLowerCase().includes('manager')).map(emp => {
+                        return (
+                          <button
+                            key={`emp-${emp.id}`}
+                            onClick={() => handleUserSelect(emp)}
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
+                              selectedType === 'dm' && selectedTarget?.id === emp.id
+                                ? 'bg-orange-50 dark:bg-orange-900/20 shadow-sm border border-orange-100 dark:border-orange-900/50'
+                                : 'hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent'
+                            }`}
+                          >
+                            <div className="relative">
+                              <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm">
+                                {(emp.name || '?').charAt(0)}
+                              </div>
+                            </div>
+                            <div className="text-left flex-1 min-w-0">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                {emp.name} <span className="ml-2 inline-flex items-center text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">{emp.designation || 'HR'}</span>
+                              </p>
+                              <p className="text-xs font-medium text-gray-500 truncate">
+                                @{emp.username || emp.name.toLowerCase().replace(/\s+/g, '')}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                    })}
                   </div>
-                  {filteredEmployees.length === 0 ? (
-                    <p className="text-xs text-gray-400 px-2 italic font-medium">No users found.</p>
-                  ) : (
-                    filteredEmployees.map(emp => {
-                      const conn = connectionsMap[emp.id];
-                      const isConnected = conn?.status === 'accepted';
-                      const isPending = conn?.status === 'pending';
-                      
-                      return (
-                        <button
-                          key={`emp-${emp.id}`}
-                          onClick={() => handleUserSelect(emp)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
-                            selectedType === 'dm' && selectedTarget?.id === emp.id
-                              ? 'bg-orange-50 dark:bg-slate-700'
-                              : 'hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300'
-                          }`}
-                        >
-                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-bold text-lg bg-blue-50 dark:bg-blue-900/50 text-blue-600">
-                            {(emp.name || '?').charAt(0)}
-                          </div>
-                          <div className="flex-1 text-left overflow-hidden">
-                            <p className="text-sm font-bold truncate flex items-center gap-1 text-gray-900 dark:text-white">
-                              {emp.name}
-                              {isConnected && <div className="w-2 h-2 rounded-full bg-green-500 ml-1"></div>}
-                            </p>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 truncate">
-                              @{emp.username}
-                            </p>
-                          </div>
-                          {!isConnected && !isPending && selectedType !== 'dm' && (
-                            <UserPlus className="w-4 h-4 text-gray-400" />
-                          )}
-                          {isPending && selectedType !== 'dm' && (
-                            <Clock className="w-4 h-4 text-amber-500" />
-                          )}
-                        </button>
-                      );
-                    })
-                  )}
+
+                  {/* Direct Messages Section */}
+                  <div>
+                    <div className="px-2 mb-2">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Colleagues</span>
+                    </div>
+                    {filteredEmployees.filter(e => !(e.designation?.toLowerCase().includes('hr') || e.designation?.toLowerCase().includes('admin') || e.designation?.toLowerCase().includes('manager'))).length === 0 ? (
+                      <p className="text-xs text-gray-400 px-2 italic font-medium">No users found.</p>
+                    ) : (
+                      filteredEmployees.filter(e => !(e.designation?.toLowerCase().includes('hr') || e.designation?.toLowerCase().includes('admin') || e.designation?.toLowerCase().includes('manager'))).map(emp => {
+                        return (
+                          <button
+                            key={`emp-${emp.id}`}
+                            onClick={() => handleUserSelect(emp)}
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
+                              selectedType === 'dm' && selectedTarget?.id === emp.id
+                                ? 'bg-orange-50 dark:bg-orange-900/20 shadow-sm border border-orange-100 dark:border-orange-900/50'
+                                : 'hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent'
+                            }`}
+                          >
+                            <div className="relative">
+                              <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center font-bold text-lg shadow-sm">
+                                {(emp.name || '?').charAt(0)}
+                              </div>
+                            </div>
+                            <div className="text-left flex-1 min-w-0">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{emp.name}</p>
+                              <p className="text-xs font-medium text-gray-500 truncate">
+                                @{emp.username || emp.name.toLowerCase().replace(/\s+/g, '')}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
                 </div>
               </>
-            ) : (
-              /* Requests Tab */
-              <div className="space-y-3">
-                {requests.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <UserPlus className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-500">No pending requests</p>
-                  </div>
-                ) : (
-                  requests.map(req => {
-                    const isOutgoing = req.sender_id === employee?.id;
-                    const otherPersonId = isOutgoing ? req.receiver_id : req.sender_id;
-                    const otherPerson = employeeList.find(e => e.id === otherPersonId);
-                    if (!otherPerson) return null;
-
-                    return (
-                      <div key={`req-${req.id}`} className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg">
-                            {(otherPerson.name || '?').charAt(0)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">{otherPerson.name}</p>
-                            <p className="text-xs font-bold text-gray-400">@{otherPerson.username}</p>
-                          </div>
-                        </div>
-                        {isOutgoing ? (
-                          <div className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-xl text-center uppercase tracking-wider">
-                            Request Sent
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="flex-1 h-9 rounded-xl border-gray-200 dark:border-slate-600 font-bold" onClick={() => handleConnectionResponse('rejected')}>Decline</Button>
-                            <Button size="sm" className="flex-1 h-9 bg-[#0a192f] hover:bg-[#0a192f]/90 text-white rounded-xl font-bold" onClick={() => handleConnectionResponse('accepted')}>Accept</Button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
+            }
           </div>
         </div>
 
@@ -674,25 +626,7 @@ function ChatPage({ session }: { session: any }) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Pending Request Banner */}
-              {selectedType === 'request' && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-100 dark:border-amber-900/50 flex flex-col items-center justify-center space-y-3">
-                  <div className="flex items-center text-amber-700 dark:text-amber-500 text-sm font-bold uppercase tracking-wider">
-                    <ShieldAlert className="w-4 h-4 mr-2" /> Message Request
-                  </div>
-                  <p className="text-xs text-amber-600/80 dark:text-amber-500/80 text-center font-bold">
-                    If you accept, they will be able to message you directly.
-                  </p>
-                  <div className="flex gap-3 mt-2">
-                    <Button variant="outline" size="sm" onClick={() => handleConnectionResponse('rejected')} disabled={processingRequest} className="border-amber-200 text-amber-700 hover:bg-amber-100 rounded-xl font-bold h-9">
-                      Reject
-                    </Button>
-                    <Button size="sm" onClick={() => handleConnectionResponse('accepted')} disabled={processingRequest} className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-md shadow-amber-600/20 h-9">
-                      Accept Request
-                    </Button>
-                  </div>
-                </div>
-              )}
+              
 
               {/* Input Area */}
               {(selectedType === 'dm' || selectedType === 'group') && selectedTarget && (
@@ -703,20 +637,18 @@ function ChatPage({ session }: { session: any }) {
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder={`Message ${selectedType === 'group' ? selectedTarget.name : '@' + (selectedTarget?.username || selectedTarget?.name?.replace(/\s+/g, '').toLowerCase() || 'user')}...`}
                       className="flex-1 bg-gray-50 dark:bg-slate-900 border-gray-100 dark:border-slate-700 text-gray-900 dark:text-white rounded-full pl-5 pr-14 h-12 font-medium"
-                      disabled={sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)}
+                      disabled={sending}
                     />
                     <Button 
                       type="submit" 
                       size="icon"
-                      disabled={!newMessage.trim() || sending || (selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id)} 
+                      disabled={!newMessage.trim() || sending} 
                       className="absolute right-1 top-1 w-10 h-10 bg-[#0a192f] hover:bg-[#0a192f]/90 text-white rounded-full shadow-md transition-transform active:scale-95 disabled:opacity-50"
                     >
                       <Send className="w-4 h-4 ml-0.5" />
                     </Button>
                   </form>
-                  {selectedType === 'dm' && selectedConnection?.status === 'pending' && selectedConnection.sender_id === employee.id && (
-                    <p className="text-[10px] text-center text-gray-400 font-bold uppercase tracking-wider mt-3">Waiting for @{selectedTarget?.username || selectedTarget?.name || 'user'} to accept</p>
-                  )}
+                  
                 </div>
               )}
             </>
