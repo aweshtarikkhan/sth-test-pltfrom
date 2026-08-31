@@ -191,22 +191,53 @@ export default function Dashboard({ session }: { session: any }) {
       const now = new Date().toISOString();
       const today = format(new Date(), 'yyyy-MM-dd');
       
+      let locationData = null;
+      try {
+        if (navigator.geolocation) {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, enableHighAccuracy: true });
+          });
+          locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
+          try {
+            const res = await fetch(https://nominatim.openstreetmap.org/reverse?lat= + locationData.lat + &lon= + locationData.lng + &format=json);
+            const geo = await res.json();
+            if (geo?.display_name) locationData.address = geo.display_name;
+          } catch {}
+        }
+      } catch (err) { console.warn("GPS failed", err); }
+
+      if (!locationData) {
+        try {
+          const ipRes = await fetch('https://ipapi.co/json/');
+          const ipGeo = await ipRes.json();
+          if (ipGeo && ipGeo.latitude && ipGeo.longitude) {
+            locationData = { lat: ipGeo.latitude, lng: ipGeo.longitude, address: (ipGeo.city + ', ' + ipGeo.region + ' (IP)').replace(/^[\s,]+|[\s,]+$/g, '') };
+          }
+        } catch (e) { console.warn("IP failed", e); }
+      }
+
+      if (!locationData) {
+        toast({ title: 'Location Warning', description: 'Could not detect location.', variant: 'destructive' });
+      }
+
       if (type === 'in') {
         const { error } = await supabase.from('attendances').upsert({
           employee_id: employee.id,
           org_id: employee.org_id,
           date: today,
           clock_in_time: now,
+          clock_in_location: locationData,
           status: 'present'
         }, { onConflict: 'employee_id,date' });
         if (error) throw error;
-        toast({ title: 'Clocked In', description: 'Your attendance has been marked.' });
+        toast({ title: 'Clocked In', description: locationData ? 'Attendance marked with location.' : 'Attendance marked.' });
       } else {
         const { error } = await supabase.from('attendances').update({
-          clock_out_time: now
+          clock_out_time: now,
+          clock_out_location: locationData
         }).eq('id', todayRecord.id);
         if (error) throw error;
-        toast({ title: 'Clocked Out', description: 'Your shift has ended.' });
+        toast({ title: 'Clocked Out', description: locationData ? 'Clock-out saved with location.' : 'Your shift has ended.' });
       }
       await loadData();
     } catch (err: any) {
@@ -476,3 +507,4 @@ export default function Dashboard({ session }: { session: any }) {
     </div>
   );
 }
+
