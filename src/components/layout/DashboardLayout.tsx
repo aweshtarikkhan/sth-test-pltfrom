@@ -438,8 +438,9 @@ export default function DashboardLayout() {
                       )}
                       <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700">
                     <X className="w-4 h-4" />
-                  </button>
-                </div>
+                    </button>
+                  </div>
+                  </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 dark:text-slate-400 text-sm">
