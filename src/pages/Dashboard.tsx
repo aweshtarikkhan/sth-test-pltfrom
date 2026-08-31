@@ -72,7 +72,7 @@ export default function Dashboard({ session }: { session: any }) {
 
         let p = 0, l = 0, a = 0, h = 0;
         (monthData || []).forEach(record => {
-          const status = record.status || 'absent';
+          const status = getEffectiveAttendanceStatus(record, shiftData);
           if (status === 'present') p++;
           else if (status === 'late') l++;
           else if (status === 'half_day' || status === 'half-day') h++;
