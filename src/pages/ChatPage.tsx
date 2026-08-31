@@ -122,22 +122,21 @@ const [showMentions, setShowMentions] = React.useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   const location = useLocation();
-  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (employeeList.length > 0 && location.search.includes('support=true') && !initializedRef.current) {
-      initializedRef.current = true;
-      const hr = employeeList.find(e => 
-        e.designation?.toLowerCase().includes('hr') || 
-        e.designation?.toLowerCase().includes('admin') || 
-        e.designation?.toLowerCase().includes('manager')
-      );
+    if (location.search.includes('support=true') && employeeList.length > 0) {
+      // Find HR admin - prefer 'hr admin' designation, then hr, then admin, then manager
+      const hr = employeeList.find(e => e.designation?.toLowerCase().includes('hr admin')) ||
+        employeeList.find(e => e.designation?.toLowerCase().includes('hr')) ||
+        employeeList.find(e => e.designation?.toLowerCase().includes('admin')) ||
+        employeeList.find(e => e.designation?.toLowerCase().includes('manager')) ||
+        employeeList[0];
       if (hr) {
         setSelectedType('dm');
         setSelectedTarget(hr);
       }
     }
-  }, [employeeList, location]);
+  }, [location.search, employeeList]);
 
 
   // Load current employee profile
