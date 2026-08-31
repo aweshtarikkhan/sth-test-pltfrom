@@ -144,13 +144,13 @@ export default function DashboardLayout() {
       const now = new Date().toISOString();
       const today = format(new Date(), 'yyyy-MM-dd');
 
-      // Capture GPS location
+      // Capture GPS location with fallback
       let locationData: { lat: number; lng: number; address?: string } | null = null;
       try {
         if (navigator.geolocation) {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 8000,
+              timeout: 10000,
               enableHighAccuracy: true,
               maximumAge: 0,
             });
@@ -167,8 +167,33 @@ export default function DashboardLayout() {
             const geo = await res.json();
             if (geo?.display_name) locationData.address = geo.display_name;
           } catch { /* ignore geocoding error */ }
+        } else {
+           throw new Error("Geolocation not supported by this browser");
         }
-      } catch { /* location permission denied — continue without location */ }
+      } catch (err: any) { 
+        console.warn("GPS failed, trying IP fallback...", err);
+      }
+
+      // Fallback to IP geolocation if GPS failed
+      if (!locationData) {
+        try {
+          const ipRes = await fetch('https://ipapi.co/json/');
+          const ipGeo = await ipRes.json();
+          if (ipGeo && ipGeo.latitude && ipGeo.longitude) {
+            locationData = {
+              lat: ipGeo.latitude,
+              lng: ipGeo.longitude,
+              address: `${ipGeo.city || ''}, ${ipGeo.region || ''}, ${ipGeo.country_name || ''} (IP Based)`.replace(/^[,\s]+|[,\s]+$/g, '')
+            };
+          }
+        } catch (e) {
+          console.warn("IP Geolocation also failed", e);
+        }
+      }
+
+      if (!locationData) {
+        toast({ title: 'Location Warning', description: 'Could not detect location. Please enable GPS/Location permissions.', variant: 'destructive' });
+      }
 
       if (type === 'in') {
         const { error, data } = await supabase.from('attendances').upsert({
