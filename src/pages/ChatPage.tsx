@@ -550,9 +550,9 @@ const [showMentions, setShowMentions] = React.useState(false);
                             : 'hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300'
                         }`}
                       >
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-orange-100 dark:bg-slate-800 text-orange-600">
-                          <Users className="w-5 h-5" />
-                        </div>
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-orange-100 dark:bg-slate-800 text-orange-600 font-bold text-lg">
+    {group.name.substring(0, 2).toUpperCase()}
+  </div>
                         <div className="flex-1 text-left overflow-hidden">
                           <p className="text-sm font-bold truncate text-gray-900 dark:text-white">{group.name}</p>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
@@ -651,12 +651,12 @@ const [showMentions, setShowMentions] = React.useState(false);
             <>
               {/* Chat Header */}
               <div className="h-16 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between px-4 bg-white dark:bg-slate-800 shrink-0">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowInfoDialog(true)}>
                   <button onClick={() => setSelectedTarget(null)} className="md:hidden p-2 -ml-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full">
                     <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-slate-300" />
                   </button>
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center font-bold overflow-hidden">
-                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : (
+                    {selectedType === 'group' ? <span className="text-lg">{selectedTarget.name.substring(0, 2).toUpperCase()}</span> : (
     selectedTarget.avatar_url || selectedTarget.profile_image ? <img src={selectedTarget.avatar_url || selectedTarget.profile_image} className="w-full h-full object-cover" alt="" /> : (selectedTarget.name || '?').charAt(0)
   )}
                   </div>
@@ -740,9 +740,12 @@ const [showMentions, setShowMentions] = React.useState(false);
                   {showMentions && groupMembers.length > 0 && (
                     <div className="absolute bottom-[70px] left-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 w-64 max-h-48 overflow-y-auto">
                       <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-slate-700">Mentions</div>
+                      
                       {groupMembers
                         .filter(m => m.name.toLowerCase().includes(mentionQuery) || (m.username && m.username.toLowerCase().includes(mentionQuery)))
+                        .sort((a, b) => a.name.localeCompare(b.name))
                         .map(m => (
+
                         <button
                           key={m.id}
                           type="button"
@@ -786,6 +789,59 @@ const [showMentions, setShowMentions] = React.useState(false);
       </div>
 
       {/* Create Group Modal */}
+      
+      {/* Info Dialog */}
+      <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+        <DialogContent className="sm:max-w-sm dark:bg-slate-800 dark:border-slate-700 rounded-3xl z-[100]">
+          <DialogHeader>
+            <DialogTitle className="dark:text-white font-bold">
+              {selectedType === 'dm' ? 'Profile Info' : 'Group Info'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedType === 'dm' && selectedTarget && (
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-3xl flex items-center justify-center font-bold text-3xl overflow-hidden">
+                  {selectedTarget.avatar_url || selectedTarget.profile_image ? (
+                    <img src={selectedTarget.avatar_url || selectedTarget.profile_image} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    (selectedTarget.name || '?').charAt(0)
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedTarget.name}</h3>
+                  <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{selectedTarget.designation || 'Employee'}</p>
+                  {selectedTarget.username && (
+                    <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">@{selectedTarget.username}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {selectedType === 'group' && selectedTarget && (
+              <div className="space-y-4">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center font-bold text-3xl">
+                    {selectedTarget.name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedTarget.name}</h3>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Created by {selectedTarget.created_by === employee?.id ? 'You' : 'Admin'}</p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 border-t border-gray-100 dark:border-slate-700 pt-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Group Members</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    <GroupMembersList groupId={selectedTarget.id} supabase={supabase} currentUserId={employee?.id} employeeList={employeeList} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700 rounded-3xl">
           <DialogHeader>
