@@ -195,7 +195,7 @@ export default function DashboardLayout() {
                 <LayoutDashboard className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-lg font-bold tracking-wide text-white truncate max-w-[140px]">
-                {organization?.name || 'AssayPortal'}
+                {organization?.name || 'AassayBiz'}
               </h1>
             </>
           )}
@@ -268,7 +268,7 @@ export default function DashboardLayout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* Header - Dark Blue AssayBiz Theme */}
+        {/* Header - Dark Blue AassayBiz Theme */}
         <header className="h-14 bg-[#0a192f] flex items-center justify-between px-4 md:px-8 z-10 shrink-0 shadow-md">
           <div className="flex items-center">
             {/* Mobile App Name */}
@@ -276,14 +276,14 @@ export default function DashboardLayout() {
               {organization?.logo_url ? (
                 <img src={organization.logo_url} alt={organization?.name || 'Company'} className="h-8 object-contain" />
               ) : (
-                organization?.name || 'AssayPortal'
+                organization?.name || 'AassayBiz'
               )}
             </div>
 
             {/* Desktop Title / Clock */}
             <div className="hidden md:block text-sm text-white">
               <div className="font-bold tracking-wide text-base">
-                {organization?.name || 'AssayPortal'}
+                {organization?.name || 'AassayBiz'}
               </div>
             </div>
           </div>
@@ -369,12 +369,12 @@ export default function DashboardLayout() {
               <Outlet />
             </div>
             <div className="w-full text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-8 shrink-0">
-              Powered by AssayBiz
+              Powered by AassayBiz
             </div>
           </div>
         </div>
 
-        {/* Mobile Bottom Navigation - AssayBiz Style */}
+        {/* Mobile Bottom Navigation - AassayBiz Style */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 flex justify-around items-end px-2 pb-safe pt-2 z-[9999] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] min-h-[70px]" style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
           {navItems.map((item, index) => {
             const isCenter = index === 2; // Home button at index 2

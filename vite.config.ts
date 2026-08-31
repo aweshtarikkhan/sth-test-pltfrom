@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'AssayPortal',
-        short_name: 'AssayPortal',
-        description: 'AssayBiz Attendance Portal',
+        name: "AassayBiz",
+        short_name: "AassayBiz",
+        description: "AassayBiz Attendance Portal",
         theme_color: '#0a192f',
         background_color: '#0a192f',
         display: 'standalone', // Makes it open full-screen like a native app

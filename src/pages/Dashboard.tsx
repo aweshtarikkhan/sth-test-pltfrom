@@ -248,7 +248,7 @@ export default function Dashboard({ session }: { session: any }) {
   
   return (
     <div className="relative w-full max-w-lg mx-auto md:max-w-4xl pb-6">
-      {/* Background Top Banner (AssayBiz Blue) */}
+      {/* Background Top Banner (AassayBiz Blue) */}
       <div className="absolute -top-8 -left-4 -right-4 h-64 bg-[#0a192f] rounded-b-[40px] z-0 hidden sm:block md:hidden"></div>
 
       <div className="relative z-10 space-y-5 mt-2">

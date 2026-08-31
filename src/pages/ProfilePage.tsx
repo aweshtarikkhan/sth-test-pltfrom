@@ -155,7 +155,7 @@ export default function ProfilePage() {
     try {
       // First check if columns exist by trying to update them.
       // If it fails, fallback to metadata or skip. 
-      // For AssayBiz schema, we assume phone and address might exist.
+      // For AassayBiz schema, we assume phone and address might exist.
       // To be safe against unknown schema, we use a try-catch for the update.
       const payload: any = {};
       if (phone) payload.phone = phone; // try phone first

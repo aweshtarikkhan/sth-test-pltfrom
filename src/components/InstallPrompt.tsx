@@ -74,7 +74,7 @@ export default function InstallPrompt() {
             <Download className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="font-black text-gray-900 dark:text-white text-[17px]">Install AssayPortal</h3>
+            <h3 className="font-black text-gray-900 dark:text-white text-[17px]">Install AassayBiz</h3>
             <p className="text-xs font-medium text-gray-500 dark:text-slate-400">Use it full-screen like a native app!</p>
           </div>
         </div>
