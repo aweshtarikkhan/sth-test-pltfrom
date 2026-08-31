@@ -32,6 +32,7 @@ function ChatPage({ session }: { session: any }) {
   const [processingRequest, setProcessingRequest] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   // Load current employee profile
@@ -57,7 +58,7 @@ function ChatPage({ session }: { session: any }) {
     // Load all other employees in org
     const { data: emps } = await supabase
       .from('employees')
-      .select('id, name, username, designation')
+      .select('id, name, username, designation, role, org_id, auth_user_id, avatar_url, profile_image')
       .eq('org_id', employee.org_id)
       .neq('id', employee.id)
       .order('name');
@@ -475,9 +476,9 @@ function ChatPage({ session }: { session: any }) {
                             }`}
                           >
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm">
-                                {(emp.name || '?').charAt(0)}
-                              </div>
+                              <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm overflow-hidden">
+    {emp.avatar_url || emp.profile_image ? <img src={emp.avatar_url || emp.profile_image} className="w-full h-full object-cover" alt="" /> : (emp.name || '?').charAt(0)}
+  </div>
                             </div>
                             <div className="text-left flex-1 min-w-0">
                               <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
@@ -512,9 +513,9 @@ function ChatPage({ session }: { session: any }) {
                             }`}
                           >
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center font-bold text-lg shadow-sm">
-                                {(emp.name || '?').charAt(0)}
-                              </div>
+                              <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center font-bold text-lg shadow-sm overflow-hidden">
+    {emp.avatar_url || emp.profile_image ? <img src={emp.avatar_url || emp.profile_image} className="w-full h-full object-cover" alt="" /> : (emp.name || '?').charAt(0)}
+  </div>
                             </div>
                             <div className="text-left flex-1 min-w-0">
                               <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{emp.name}</p>
@@ -549,8 +550,10 @@ function ChatPage({ session }: { session: any }) {
                   <button onClick={() => setSelectedTarget(null)} className="md:hidden p-2 -ml-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full">
                     <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-slate-300" />
                   </button>
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center font-bold">
-                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : (selectedTarget.name || '?').charAt(0)}
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center font-bold overflow-hidden">
+                    {selectedType === 'group' ? <Users className="w-5 h-5" /> : (
+    selectedTarget.avatar_url || selectedTarget.profile_image ? <img src={selectedTarget.avatar_url || selectedTarget.profile_image} className="w-full h-full object-cover" alt="" /> : (selectedTarget.name || '?').charAt(0)
+  )}
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 dark:text-white text-sm">{selectedTarget.name}</h3>
@@ -561,9 +564,8 @@ function ChatPage({ session }: { session: any }) {
                 </div>
                 {selectedType === 'dm' && (
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full"><Phone className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full"><Video className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full"><Info className="w-4 h-4" /></Button>
+                    
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 rounded-full" onClick={() => setShowInfoDialog(true)}><Info className="w-4 h-4" /></Button>
                   </div>
                 )}
               </div>
