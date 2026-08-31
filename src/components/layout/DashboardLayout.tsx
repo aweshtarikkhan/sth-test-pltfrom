@@ -187,7 +187,17 @@ export default function DashboardLayout() {
       .channel('dashboard-chat-msgs')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${employee.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${employee.id}` },
+          (payload) => {
+            if (payload.new.status === 'read') {
+              setNotifications(prev => prev.filter(n => n.id !== 'chat-' + payload.new.id));
+              setUnreadChats(prev => Math.max(0, prev - 1));
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${employee.id}` },
         async (payload) => {
           const newMsg = payload.new;
           
@@ -231,6 +241,20 @@ export default function DashboardLayout() {
       supabase.removeChannel(chatChannel);
     };
   }, [employee]);
+
+  
+  // Auto-clear leave notifications when visiting /leaves
+  useEffect(() => {
+    if (location.pathname === '/leaves' && employee) {
+      setNotifications(prev => prev.filter(n => !['leave_approved', 'leave_rejected', 'leave_request'].includes(n.type)));
+      supabase.from('notifications')
+        .update({ is_read: true })
+        .in('type', ['leave_approved', 'leave_rejected', 'leave_request'])
+        .eq('user_id', employee.auth_user_id)
+        .eq('is_read', false)
+        .then();
+    }
+  }, [location.pathname, employee]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -406,7 +430,13 @@ export default function DashboardLayout() {
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden max-h-[70vh]">
                 <div className="p-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900/50">
                   <h3 className="font-bold text-gray-900 dark:text-white">Notifications</h3>
-                  <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700">
+                    <div className="flex items-center gap-2">
+                      {notifications.length > 0 && (
+                        <button onClick={() => setNotifications([])} className="text-xs text-orange-600 dark:text-orange-400 hover:underline mr-2">
+                          Clear All
+                        </button>
+                      )}
+                      <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -418,10 +448,22 @@ export default function DashboardLayout() {
                   ) : (
                     <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
                       {notifications.map(n => (
-                        <div key={n.id} className={`p-4 ${!n.is_read ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{n.title}</p>
-                          <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{n.message}</p>
-                        </div>
+                        <div key={n.id} className={`p-4 relative group ${!n.is_read ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
+                            <div className="pr-6">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white">{n.title}</p>
+                              <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{n.message}</p>
+                            </div>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotifications(prev => prev.filter(item => item.id !== n.id));
+                              }}
+                              className="absolute right-4 top-4 p-1 text-gray-400 hover:text-red-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Clear notification"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                       ))}
                     </div>
                   )}
