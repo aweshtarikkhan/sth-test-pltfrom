@@ -528,7 +528,6 @@ function ChatPage({ session }: { session: any }) {
                     )}
                 </div>
               </>
-            }
           </div>
         </div>
 
