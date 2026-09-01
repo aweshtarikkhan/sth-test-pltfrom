@@ -8,23 +8,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: "AassayBiz",
         short_name: "AassayBiz",
         description: "AassayBiz Attendance Portal",
         theme_color: '#0a192f',
         background_color: '#0a192f',
-        display: 'standalone', // Makes it open full-screen like a native app
+        display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: 'favicon.png',
+            src: 'icon-192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: 'favicon.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
