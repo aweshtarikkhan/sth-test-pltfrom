@@ -332,11 +332,7 @@ export default function DashboardLayout() {
     <>
       <div className="h-16 flex items-center px-6 border-b border-white/10 bg-[#0a192f] text-white shrink-0">
         <div className="flex items-center gap-3">
-          {organization?.logo_url ? (
-            <img src={organization.logo_url} alt={organization?.name || 'Company Logo'} className="h-8 max-w-[150px] object-contain" />
-          ) : (
-            <img src={logoImg} alt="AassayBiz" className="h-9 object-contain" />
-          )}
+          <img src={logoImg} alt="AassayBiz" className="h-9 object-contain" />
         </div>
       </div>
       
@@ -411,11 +407,7 @@ export default function DashboardLayout() {
           <div className="flex items-center">
             {/* Mobile App Name */}
             <div className="md:hidden text-white font-bold text-base tracking-wide flex items-center">
-              {organization?.logo_url ? (
-                <img src={organization.logo_url} alt={organization?.name || 'Company'} className="h-8 object-contain" />
-              ) : (
-                <img src={logoImg} alt="AassayBiz" className="h-8 object-contain" />
-              )}
+              <img src={logoImg} alt="AassayBiz" className="h-8 object-contain" />
             </div>
 
             {/* Desktop Title / Clock */}
