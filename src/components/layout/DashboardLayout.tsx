@@ -335,14 +335,7 @@ export default function DashboardLayout() {
           {organization?.logo_url ? (
             <img src={organization.logo_url} alt={organization?.name || 'Company Logo'} className="h-8 max-w-[150px] object-contain" />
           ) : (
-            <>
-              <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shadow-sm shrink-0">
-                <LayoutDashboard className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-lg font-bold tracking-wide text-white truncate max-w-[140px]">
-                {organization?.name || 'AassayBiz'}
-              </h1>
-            </>
+            <img src={logoImg} alt="AassayBiz" className="h-9 object-contain" />
           )}
         </div>
       </div>
@@ -421,7 +414,7 @@ export default function DashboardLayout() {
               {organization?.logo_url ? (
                 <img src={organization.logo_url} alt={organization?.name || 'Company'} className="h-8 object-contain" />
               ) : (
-                organization?.name || 'AassayBiz'
+                <img src={logoImg} alt="AassayBiz" className="h-8 object-contain" />
               )}
             </div>
 
