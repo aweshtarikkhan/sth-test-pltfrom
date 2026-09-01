@@ -143,6 +143,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
         <div className="flex gap-4 min-w-max">
           {[
             { key: 'casual', label: 'Casual', color: 'bg-blue-600', iconColor: 'text-blue-600', iconBg: 'bg-blue-50 dark:bg-blue-900/30' },
+            { key: 'el_pl',  label: 'Earned/PL', color: 'bg-indigo-600', iconColor: 'text-indigo-600', iconBg: 'bg-indigo-50 dark:bg-indigo-900/30' },
             { key: 'sick',   label: 'Sick',   color: 'bg-[#ff6b00]', iconColor: 'text-[#ff6b00]', iconBg: 'bg-orange-50 dark:bg-orange-900/30' },
             { key: 'paid',   label: 'Paid',   color: 'bg-green-500', iconColor: 'text-green-500', iconBg: 'bg-green-50 dark:bg-green-900/30' },
           ].map(({ key, label, color, iconColor, iconBg }) => {
@@ -269,10 +270,22 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                 value={leaveData.leaveType}
                 onChange={e => setLeaveData({...leaveData, leaveType: e.target.value})}
               >
-                <option value="casual">Casual Leave</option>
-                <option value="sick">Sick Leave</option>
-                <option value="paid">Paid Leave</option>
-                <option value="unpaid">Unpaid Leave</option>
+                  <option value="casual">Casual Leave (CL)</option>
+                  <option value="el_pl">Earned/Privilege (EL/PL)</option>
+                  <option value="sick">Sick/Medical (SL/ML)</option>
+                  <option value="comp_off">Compensatory Off</option>
+                  <option value="maternity">Maternity Leave</option>
+                  <option value="paternity">Paternity Leave</option>
+                  <option value="bereavement">Bereavement Leave</option>
+                  <option value="marriage">Marriage Leave</option>
+                  <option value="study">Study/Sabbatical</option>
+                  <option value="jury_duty">Jury Duty</option>
+                  <option value="od">On Duty (OD)</option>
+                  <option value="wfh">Work From Home (WFH)</option>
+                  <option value="half_day">Half-Day Leave</option>
+                  <option value="lwp">Leave Without Pay (LWP)</option>
+                  <option value="ncns">Absent (NCNS)</option>
+                  <option value="other">Other</option>
               </select>
             </div>
             
