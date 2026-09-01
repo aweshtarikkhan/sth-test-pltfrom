@@ -286,8 +286,6 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                   <option value="wfh">Work From Home (WFH)</option>
                   <option value="half_day">Half-Day Leave</option>
                   <option value="lwp">Leave Without Pay (LWP)</option>
-                  <option value="ncns">Absent (NCNS)</option>
-                  <option value="other">Other</option>
               </select>
             </div>
             
