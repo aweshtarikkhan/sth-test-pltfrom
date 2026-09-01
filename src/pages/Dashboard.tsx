@@ -47,9 +47,33 @@ export default function Dashboard({ session }: { session: any }) {
       if (empData) {
         setEmployee(empData);
         
-        const today = format(new Date(), 'yyyy-MM-dd');
-        const start = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-        const end = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+        const now = new Date();
+        const todayStr = format(now, 'yyyy-MM-dd');
+        
+        let startDate, endDate;
+        if (dateFilter === 'this_month') {
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+        } else if (dateFilter === 'last_month') {
+          const lastMonth = subMonths(now, 1);
+          startDate = startOfMonth(lastMonth);
+          endDate = endOfMonth(lastMonth);
+        } else if (dateFilter === 'last_7_days') {
+          startDate = subDays(now, 6); 
+          endDate = now;
+        } else if (dateFilter === 'last_30_days') {
+          startDate = subDays(now, 29); 
+          endDate = now;
+        } else if (dateFilter === 'custom' && customStart && customEnd) {
+          startDate = parseISO(customStart);
+          endDate = parseISO(customEnd);
+        } else {
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+        }
+
+        const start = format(startDate, 'yyyy-MM-dd');
+        const end = format(endDate, 'yyyy-MM-dd');
 
         const [
           { data: monthData },
@@ -62,8 +86,8 @@ export default function Dashboard({ session }: { session: any }) {
           { data: monthLeavesData }
         ] = await Promise.all([
           supabase.from('attendances').select('*').eq('employee_id', empData.id).gte('date', start).lte('date', end),
-          supabase.from('attendances').select('*').eq('employee_id', empData.id).eq('date', today).maybeSingle(),
-          supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', today).order('date', { ascending: true }).limit(2),
+          supabase.from('attendances').select('*').eq('employee_id', empData.id).eq('date', todayStr).maybeSingle(),
+          supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', todayStr).order('date', { ascending: true }).limit(2),
           (supabase as any).from('employee_shifts').select('*, shifts(*)').eq('employee_id', empData.id).maybeSingle(),
           supabase.from('leave_balances').select('*').eq('employee_id', empData.id),
           supabase.from('organizations').select('weekly_offs').eq('id', empData.org_id).single(),
@@ -98,8 +122,19 @@ export default function Dashboard({ session }: { session: any }) {
         const attMap: Record<string, any> = {};
         (monthData || []).forEach(r => { attMap[r.date] = r; });
 
-        const monthDays = eachDayOfInterval({ start: startOfMonth(new Date()), end: endOfMonth(new Date()) });
-        const eligibleDays = monthDays.filter(d => format(d, 'yyyy-MM-dd') <= today);
+        let dateInterval: Date[] = [];
+        try {
+          dateInterval = eachDayOfInterval({ start: startDate, end: endDate });
+        } catch (e) {
+          dateInterval = [];
+        }
+
+        const joiningDateStr = empData.joining_date || format(new Date(empData.created_at || now), 'yyyy-MM-dd');
+        
+        const eligibleDays = dateInterval.filter(d => {
+          const dStr = format(d, 'yyyy-MM-dd');
+          return dStr <= todayStr && dStr >= joiningDateStr;
+        });
 
         let p = 0, l = 0, a = 0, h = 0;
         
@@ -138,8 +173,11 @@ export default function Dashboard({ session }: { session: any }) {
   };
 
   useEffect(() => {
-    loadData();
-  }, [session]);
+    if (session) {
+      if (dateFilter === 'custom' && (!customStart || !customEnd)) return;
+      loadData();
+    }
+  }, [session, dateFilter, customStart, customEnd]);
 
   
   const handleCancelLeave = async (leaveId: string) => {
@@ -391,70 +429,102 @@ export default function Dashboard({ session }: { session: any }) {
           )}
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Present */}
-          <div className="relative overflow-hidden bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[110px]">
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white shadow-sm">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex flex-col pt-1">
-                <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.present}</span>
-                <span className="text-[10px] font-bold text-green-500 tracking-wider mt-1 uppercase">Present</span>
-              </div>
-            </div>
-            <WaveSVG color="#22c55e33" />
+        {/* Stats Section with Filter */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-gray-900 dark:text-white text-base">Attendance Overview</h3>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-[140px] h-8 text-xs bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
+                <SelectValue placeholder="Select Period" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="this_month">This Month</SelectItem>
+                <SelectItem value="last_month">Last Month</SelectItem>
+                <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                <SelectItem value="custom">Custom Dates</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Late */}
-          <div className="relative overflow-hidden bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[110px]">
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-sm">
-                  <Clock className="w-4 h-4" />
-                </div>
+          {dateFilter === 'custom' && (
+            <div className="flex gap-2 mb-4">
+              <div className="flex-1">
+                <Label className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 block">Start Date</Label>
+                <Input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="h-8 text-xs rounded-xl" />
               </div>
-              <div className="flex flex-col pt-1">
-                <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.late}</span>
-                <span className="text-[10px] font-bold text-amber-500 tracking-wider mt-1 uppercase">Late Coming</span>
+              <div className="flex-1">
+                <Label className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 block">End Date</Label>
+                <Input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="h-8 text-xs rounded-xl" />
               </div>
             </div>
-            <WaveSVG color="#f59e0b33" />
-          </div>
+          )}
 
-          {/* Half Days */}
-          <div className="relative overflow-hidden bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[110px]">
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center shrink-0">
-                <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white shadow-sm">
-                  <AlertCircle className="w-4 h-4" />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Present */}
+            <div className="relative overflow-hidden bg-gray-50 dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[100px]">
+              <div className="relative z-10 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white shadow-sm">
+                    <CheckCircle2 className="w-3 h-3" />
+                  </div>
+                </div>
+                <div className="flex flex-col pt-0.5">
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">{stats.present}</span>
+                  <span className="text-[10px] font-bold text-green-500 tracking-wider mt-1 uppercase">Present</span>
                 </div>
               </div>
-              <div className="flex flex-col pt-1">
-                <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.half_day}</span>
-                <span className="text-[10px] font-bold text-orange-500 tracking-wider mt-1 uppercase">Half Days</span>
-              </div>
+              <WaveSVG color="#22c55e22" />
             </div>
-            <WaveSVG color="#f9731633" />
-          </div>
 
-          {/* Absent */}
-          <div className="relative overflow-hidden bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[110px]">
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
-                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white shadow-sm">
-                  <XCircle className="w-4 h-4" />
+            {/* Late */}
+            <div className="relative overflow-hidden bg-gray-50 dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[100px]">
+              <div className="relative z-10 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-sm">
+                    <Clock className="w-3 h-3" />
+                  </div>
+                </div>
+                <div className="flex flex-col pt-0.5">
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">{stats.late}</span>
+                  <span className="text-[10px] font-bold text-amber-500 tracking-wider mt-1 uppercase">Late Coming</span>
                 </div>
               </div>
-              <div className="flex flex-col pt-1">
-                <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.absent}</span>
-                <span className="text-[10px] font-bold text-red-500 tracking-wider mt-1 uppercase">Absent</span>
-              </div>
+              <WaveSVG color="#f59e0b22" />
             </div>
-            <WaveSVG color="#ef444433" />
+
+            {/* Half Days */}
+            <div className="relative overflow-hidden bg-gray-50 dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[100px]">
+              <div className="relative z-10 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white shadow-sm">
+                    <AlertCircle className="w-3 h-3" />
+                  </div>
+                </div>
+                <div className="flex flex-col pt-0.5">
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">{stats.half_day}</span>
+                  <span className="text-[10px] font-bold text-orange-500 tracking-wider mt-1 uppercase">Half Days</span>
+                </div>
+              </div>
+              <WaveSVG color="#f9731622" />
+            </div>
+
+            {/* Absent */}
+            <div className="relative overflow-hidden bg-gray-50 dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[100px]">
+              <div className="relative z-10 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white shadow-sm">
+                    <XCircle className="w-3 h-3" />
+                  </div>
+                </div>
+                <div className="flex flex-col pt-0.5">
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">{stats.absent}</span>
+                  <span className="text-[10px] font-bold text-red-500 tracking-wider mt-1 uppercase">Absent</span>
+                </div>
+              </div>
+              <WaveSVG color="#ef444422" />
+            </div>
           </div>
         </div>
 
