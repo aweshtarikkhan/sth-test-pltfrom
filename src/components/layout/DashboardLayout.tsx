@@ -13,10 +13,6 @@ export default function DashboardLayout() {
   const [todayRecord, setTodayRecord] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark' ||
-      (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,23 +28,10 @@ export default function DashboardLayout() {
     return () => clearInterval(timer);
   }, []);
 
+  // Force light mode
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
-
-  // Listen for theme changes from Settings page
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
   }, []);
 
   const fetchTodayRecord = async (empData: any) => {
@@ -441,14 +424,6 @@ export default function DashboardLayout() {
                 )}
               </button>
             </div>
-
-            {/* Desktop Theme Toggle */}
-            <button 
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="hidden md:flex p-2 text-white/80 hover:bg-white/10 rounded-full transition-colors"
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
 
             {/* Profile - Mobile Hidden (since we have bottom nav and sidebar) */}
             <div className="hidden md:flex items-center ml-2">
