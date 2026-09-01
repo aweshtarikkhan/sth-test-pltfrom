@@ -32,10 +32,16 @@ export default function InstallPrompt() {
       }
     };
 
+    const handleManualTrigger = () => {
+      setShowPrompt(true);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('trigger-install-prompt', handleManualTrigger);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('trigger-install-prompt', handleManualTrigger);
     };
   }, []);
 

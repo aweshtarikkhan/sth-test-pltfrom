@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { CalendarDays, User, HelpCircle, LogOut, ChevronRight, Moon, Sun } from 'lucide-react';
+import { CalendarDays, User, HelpCircle, LogOut, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage({ session }: { session: any }) {
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return document.documentElement.classList.contains('dark');
-  });
-
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -67,29 +51,23 @@ export default function SettingsPage({ session }: { session: any }) {
           ))}
         </div>
 
-        {/* Theme Toggle */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mt-6">
           <div 
-            onClick={toggleTheme}
-            className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+            onClick={() => window.dispatchEvent(new Event('trigger-install-prompt'))}
+            className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group border-b border-gray-100 dark:border-slate-700"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0">
-                {isDarkMode ? <Moon className="w-5 h-5 text-[#0a192f] dark:text-slate-300" /> : <Sun className="w-5 h-5 text-[#0a192f] dark:text-slate-300" />}
+              <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-900/20 group-hover:bg-orange-100 flex items-center justify-center shrink-0 transition-colors">
+                <Download className="w-5 h-5 text-orange-600 dark:text-orange-500" />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-white text-sm">Appearance</h3>
-                <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mt-0.5">{isDarkMode ? 'Dark mode is on' : 'Light mode is on'}</p>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">Add to Home Screen</h3>
+                <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mt-0.5">Install app for quick access</p>
               </div>
             </div>
-            <div className={`w-12 h-7 rounded-full flex items-center px-1 transition-colors ${isDarkMode ? 'bg-orange-500' : 'bg-gray-300'}`}>
-              <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
-            </div>
           </div>
-        </div>
 
-        {/* Sign Out */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mt-6">
+          {/* Sign Out */}
           <div 
             onClick={handleLogout}
             className="p-4 flex items-center justify-between cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group"
