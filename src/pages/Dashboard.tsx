@@ -22,6 +22,9 @@ export default function Dashboard({ session }: { session: any }) {
   const [loading, setLoading] = useState(true);
   const [approvedLeaveToday, setApprovedLeaveToday] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [dateFilter, setDateFilter] = useState('this_month');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
 
