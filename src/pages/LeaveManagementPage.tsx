@@ -48,15 +48,17 @@ export default function LeaveManagementPage({ session }: { session: any }) {
         setLeaves(leavesRes.data || []);
 
         // Build balance map
-        const DEFAULT_ANNUAL: Record<string, number> = { casual: 12, sick: 5, paid: 8 };
+        const DEFAULT_ANNUAL: Record<string, number> = { casual: 12, sick: 5, el_pl: 0, comp_off: 0 };
+        const ACCRUED_TYPES = ['el_pl', 'comp_off'];
         const bmap: Record<string, { used: number; accrued: number; annual: number }> = {};
-        ['casual', 'sick', 'paid'].forEach((t) => {
+        ['casual', 'sick', 'el_pl', 'comp_off'].forEach((t) => {
           const bal = (balancesRes.data || []).find((b: any) => b.leave_type === t);
           const pol = (policiesRes.data || []).find((p: any) => p.leave_type === t);
+          const isAccrued = ACCRUED_TYPES.includes(t);
           bmap[t] = {
             used: bal?.used ?? 0,
             accrued: bal?.accrued ?? 0,
-            annual: pol?.annual_limit ?? DEFAULT_ANNUAL[t] ?? 0,
+            annual: isAccrued ? (bal?.accrued ?? 0) : (pol?.annual_limit ?? DEFAULT_ANNUAL[t] ?? 0),
           };
         });
         setLeaveBalances(bmap);
@@ -145,7 +147,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             { key: 'casual', label: 'Casual', color: 'bg-blue-600', iconColor: 'text-blue-600', iconBg: 'bg-blue-50 dark:bg-blue-900/30' },
             { key: 'el_pl',  label: 'Earned/PL', color: 'bg-indigo-600', iconColor: 'text-indigo-600', iconBg: 'bg-indigo-50 dark:bg-indigo-900/30' },
             { key: 'sick',   label: 'Sick',   color: 'bg-[#ff6b00]', iconColor: 'text-[#ff6b00]', iconBg: 'bg-orange-50 dark:bg-orange-900/30' },
-            { key: 'paid',   label: 'Paid',   color: 'bg-green-500', iconColor: 'text-green-500', iconBg: 'bg-green-50 dark:bg-green-900/30' },
+            { key: 'comp_off', label: 'Comp-Off', color: 'bg-teal-500', iconColor: 'text-teal-500', iconBg: 'bg-teal-50' },
           ].map(({ key, label, color, iconColor, iconBg }) => {
             const b = leaveBalances[key] || { used: 0, accrued: 0, annual: 0 };
             const remaining = Math.max(0, b.annual - b.used);
