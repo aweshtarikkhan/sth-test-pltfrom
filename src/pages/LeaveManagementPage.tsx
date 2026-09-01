@@ -111,6 +111,23 @@ export default function LeaveManagementPage({ session }: { session: any }) {
       if (durationType === 'single' && sessionType !== 'full') {
         days = 0.5;
       }
+
+      // Balance check for tracked leave types
+      const TRACKED_TYPES = ['casual', 'sick', 'el_pl', 'comp_off'];
+      if (TRACKED_TYPES.includes(leaveData.leaveType)) {
+        const bal = leaveBalances[leaveData.leaveType] || { used: 0, annual: 0 };
+        const remaining = Math.max(0, bal.annual - bal.used);
+        if (days > remaining) {
+          const typeName = APPLY_LEAVE_TYPES.find(t => t.key === leaveData.leaveType)?.label || leaveData.leaveType;
+          toast({
+            title: 'Insufficient Leave Balance',
+            description: `You have ${remaining} day(s) of ${typeName} remaining but you are applying for ${days} day(s). Please reduce the days or choose a different leave type.`,
+            variant: 'destructive'
+          });
+          setActionLoading(false);
+          return;
+        }
+      }
       
       const { error } = await supabase.from('leaves').insert({
         org_id: employee.org_id,
