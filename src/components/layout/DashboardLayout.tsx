@@ -332,7 +332,9 @@ export default function DashboardLayout() {
     <>
       <div className="h-16 flex items-center px-6 border-b border-white/10 bg-[#0a192f] text-white shrink-0">
         <div className="flex items-center gap-3">
-          <img src={logoImg} alt="AassayBiz" className="h-9 object-contain" />
+          <div className="bg-white/95 px-4 py-2 rounded-xl shadow-sm w-full flex justify-center border border-white/20">
+            <img src={logoImg} alt="AassayBiz" className="h-9 w-auto object-contain" />
+          </div>
         </div>
       </div>
       
@@ -406,8 +408,10 @@ export default function DashboardLayout() {
         <header className="h-14 bg-[#0a192f] flex items-center justify-between px-4 md:px-8 z-10 shrink-0 shadow-md">
           <div className="flex items-center">
             {/* Mobile App Name */}
-            <div className="md:hidden text-white font-bold text-base tracking-wide flex items-center">
-              <img src={logoImg} alt="AassayBiz" className="h-8 object-contain" />
+            <div className="md:hidden flex items-center">
+              <div className="bg-white/95 px-3 py-1.5 rounded-lg shadow-sm border border-white/20">
+                <img src={logoImg} alt="AassayBiz" className="h-7 w-auto object-contain" />
+              </div>
             </div>
 
             {/* Desktop Title / Clock */}
