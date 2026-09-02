@@ -222,9 +222,10 @@ export default function DashboardLayout() {
       .channel('dashboard-chat-msgs')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${employee.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'chat_messages' },
           (payload) => {
-            if (payload.new.status === 'read') {
+            // If it's a DM to us, and it became read
+            if (payload.new.receiver_id === employee.id && payload.new.status === 'read') {
               setNotifications(prev => prev.filter(n => n.id !== 'chat-' + payload.new.id));
               setUnreadChats(prev => Math.max(0, prev - 1));
             }
@@ -232,13 +233,33 @@ export default function DashboardLayout() {
         )
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${employee.id}` },
+          { event: 'INSERT', schema: 'public', table: 'chat_messages' },
         async (payload) => {
           const newMsg = payload.new;
           
-          // Only alert if we're not currently on the chat page, or if we are, maybe we shouldn't show it?
-          // The user requested it to show on the notification bar
+          if (newMsg.sender_id === employee.id) return; // Ignore own messages
           
+          let isRelevant = false;
+          let notifTitle = '';
+
+          if (newMsg.receiver_id === employee.id) {
+            isRelevant = true;
+          } else if (newMsg.group_id) {
+            // Check if user is in this group
+            const { data: member } = await supabase
+              .from('chat_group_members')
+              .select('id')
+              .eq('group_id', newMsg.group_id)
+              .eq('employee_id', employee.id)
+              .maybeSingle();
+              
+            if (member) {
+              isRelevant = true;
+            }
+          }
+
+          if (!isRelevant) return;
+
           // Fetch sender name
           const { data: senderData } = await supabase
             .from('employees')
@@ -247,10 +268,17 @@ export default function DashboardLayout() {
             .single();
             
           const senderName = senderData?.name || 'Someone';
+
+          if (newMsg.group_id) {
+            const { data: groupData } = await supabase.from('chat_groups').select('name').eq('id', newMsg.group_id).maybeSingle();
+            notifTitle = `Message from ${senderName} in ${groupData?.name || 'Group'}`;
+          } else {
+            notifTitle = `New Message from ${senderName}`;
+          }
           
           // Pop a toast notification
           toast({
-            title: `New Message from ${senderName}`,
+            title: notifTitle,
             description: newMsg.message || 'Sent an attachment',
             duration: 5000,
           });
@@ -259,7 +287,7 @@ export default function DashboardLayout() {
           setNotifications(prev => {
             const newNotif = {
               id: 'chat-' + newMsg.id,
-              title: `New Message from ${senderName}`,
+              title: notifTitle,
               message: newMsg.message || 'Sent an attachment',
               is_read: false,
               type: 'chat',
