@@ -386,7 +386,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative">
         {/* Header - Dark Blue AassayBiz Theme */}
         <header className="h-14 bg-[#0a192f] flex items-center justify-between px-4 md:px-8 z-10 shrink-0 shadow-md">
           <div className="flex items-center">
@@ -492,12 +492,12 @@ export default function DashboardLayout() {
 
         {/* Page Content */}
         {location.pathname === '/chat' ? (
-          <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative flex flex-col pb-[80px] md:pb-0">
+          <div className="flex-1 min-h-0 overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative flex flex-col pb-[70px] md:pb-0">
             <Outlet />
           </div>
         ) : (
-          <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 transition-colors relative pb-28 md:pb-8 pt-4 md:pt-0">
-            <div className="min-h-[calc(100%-40px)] flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative pb-28 md:pb-8 pt-4 md:pt-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="min-h-full flex flex-col">
               <div className="flex-1">
                 <Outlet />
               </div>
