@@ -392,14 +392,14 @@ export default function DashboardLayout() {
           <div className="flex items-center">
             {/* Mobile App Name */}
             <div className="md:hidden flex items-center">
-              <div className="bg-white/95 px-3 py-1.5 rounded-lg shadow-sm border border-white/20">
-                <img src={logoImg} alt="AassayBiz" className="h-7 w-auto object-contain" />
+              <div className="text-white font-bold text-lg tracking-wide capitalize">
+                {organization?.name || 'AassayBiz'}
               </div>
             </div>
 
             {/* Desktop Title / Clock */}
             <div className="hidden md:block text-sm text-white">
-              <div className="font-bold tracking-wide text-base">
+              <div className="font-bold tracking-wide text-base capitalize">
                 {organization?.name || 'AassayBiz'}
               </div>
             </div>
