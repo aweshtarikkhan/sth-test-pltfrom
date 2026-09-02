@@ -499,8 +499,8 @@ const [showMentions, setShowMentions] = React.useState(false);
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto h-full flex flex-col pb-4 px-2 pt-2">
-      <div className={`relative z-10 flex justify-between items-end mb-4 px-2 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
+    <div className="absolute inset-0 flex flex-col pb-4 px-2 pt-2">
+      <div className={`relative z-10 flex justify-between items-end mb-4 px-2 shrink-0 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Team Chat</h1>
           <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Connect directly or in groups</p>
@@ -510,20 +510,7 @@ const [showMentions, setShowMentions] = React.useState(false);
       <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Sidebar */}
         <div className={`w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-gray-100 dark:border-slate-700/50">
-            
-            
-            {true && (
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search users or groups..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-gray-50 dark:bg-slate-900 border-gray-100 dark:border-slate-700 rounded-xl h-10 text-sm"
-                />
-              </div>
-            )}
+          <div className="p-4 border-b border-gray-100 dark:border-slate-700/50 hidden">
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
