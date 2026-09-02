@@ -26,6 +26,9 @@ export default function Dashboard({ session }: { session: any }) {
   const [dateFilter, setDateFilter] = useState('this_month');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
+  const [ads, setAds] = useState<any[]>([]);
+  const [currentAdSlide, setCurrentAdSlide] = useState(0);
+  const [adAutoSlideInterval, setAdAutoSlideInterval] = useState(5000);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -182,6 +185,28 @@ export default function Dashboard({ session }: { session: any }) {
       loadData();
     }
   }, [session, dateFilter, customStart, customEnd]);
+
+  // Fetch portal ads
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const { data } = await (supabase as any).from('portal_ads').select('*').eq('is_active', true).order('sort_order', { ascending: true });
+        if (data && data.length > 0) setAds(data);
+      } catch (e) {
+        // portal_ads table may not exist yet, silently fail
+      }
+    };
+    fetchAds();
+  }, []);
+
+  // Auto-slide ads
+  useEffect(() => {
+    if (ads.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentAdSlide(prev => (prev + 1) % ads.length);
+    }, adAutoSlideInterval);
+    return () => clearInterval(timer);
+  }, [ads.length, adAutoSlideInterval]);
 
   
   const handleCancelLeave = async (leaveId: string) => {
@@ -370,34 +395,45 @@ export default function Dashboard({ session }: { session: any }) {
           </div>
         </div>
 
-        {/* Upcoming Holiday */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-slate-700">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2 text-blue-900 dark:text-white font-bold text-sm">
-                <CalendarDays className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                Next Holiday
-              </div>
-              <Button variant="ghost" className="h-6 text-xs text-blue-600 dark:text-blue-400 p-0 hover:bg-transparent hover:text-blue-800" onClick={() => navigate('/holidays')}>View All</Button>
+        {/* Ad Banner Carousel */}
+        {ads.length > 0 && (
+          <div className="relative rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <div className="relative w-full" style={{ minHeight: '120px' }}>
+              {ads.map((ad, idx) => (
+                <div
+                  key={ad.id}
+                  className={`w-full transition-opacity duration-500 ${idx === currentAdSlide ? 'block opacity-100' : 'hidden opacity-0'}`}
+                >
+                  {ad.link_url ? (
+                    <a href={ad.link_url} target="_blank" rel="noopener noreferrer">
+                      <img src={ad.image_url} alt={ad.title || 'Ad'} className="w-full h-auto object-cover rounded-2xl" style={{ maxHeight: '200px' }} />
+                    </a>
+                  ) : (
+                    <img src={ad.image_url} alt={ad.title || 'Ad'} className="w-full h-auto object-cover rounded-2xl" style={{ maxHeight: '200px' }} />
+                  )}
+                </div>
+              ))}
             </div>
-            
-            {upcomingHolidays.length === 0 ? (
-              <p className="text-xs text-blue-500/80 dark:text-slate-400">No upcoming holidays.</p>
-            ) : (
-              <div>
-                {upcomingHolidays.slice(0, 1).map((h, i) => (
-                  <div key={i} className="flex justify-between items-center bg-white dark:bg-slate-900/50 p-3 rounded-xl shadow-sm border border-white dark:border-slate-700/50">
-                    <div>
-                      <p className="font-bold text-sm text-gray-900 dark:text-white">{h.name}</p>
-                      <p className="text-[10px] font-medium text-gray-500 dark:text-slate-400 mt-1">{format(new Date(h.date), 'dd MMMM yyyy')}</p>
-                    </div>
-                    <div className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap shadow-inner">
-                      In {Math.ceil((new Date(h.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days
-                    </div>
-                  </div>
+            {ads.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5">
+                {ads.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentAdSlide(idx)}
+                    className={`w-2 h-2 rounded-full transition-all ${idx === currentAdSlide ? 'bg-orange-500 w-4' : 'bg-gray-300 dark:bg-slate-600'}`}
+                  />
                 ))}
               </div>
             )}
           </div>
+        )}
+
+        {/* Space for Ad (fallback when no ads) */}
+        {ads.length === 0 && (
+          <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl p-6 shadow-sm border border-dashed border-gray-200 dark:border-slate-700 flex items-center justify-center min-h-[100px]">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 tracking-wider uppercase">Space for Ad</p>
+          </div>
+        )}
 
           {/* Clock In / Out Main Action Widget */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-between">
@@ -548,6 +584,35 @@ export default function Dashboard({ session }: { session: any }) {
             </div>
             <ChevronRight className="w-6 h-6 text-blue-300 dark:text-blue-500 relative z-10" />
             <FileText className="w-24 h-24 text-blue-500/10 dark:text-blue-400/5 absolute -right-4 -bottom-4 transform rotate-12 pointer-events-none" />
+          </div>
+
+        {/* Upcoming Holiday (moved below Apply for Leave) */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-slate-700">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2 text-blue-900 dark:text-white font-bold text-sm">
+                <CalendarDays className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                Next Holiday
+              </div>
+              <Button variant="ghost" className="h-6 text-xs text-blue-600 dark:text-blue-400 p-0 hover:bg-transparent hover:text-blue-800" onClick={() => navigate('/holidays')}>View All</Button>
+            </div>
+            
+            {upcomingHolidays.length === 0 ? (
+              <p className="text-xs text-blue-500/80 dark:text-slate-400">No upcoming holidays.</p>
+            ) : (
+              <div>
+                {upcomingHolidays.slice(0, 1).map((h, i) => (
+                  <div key={i} className="flex justify-between items-center bg-white dark:bg-slate-900/50 p-3 rounded-xl shadow-sm border border-white dark:border-slate-700/50">
+                    <div>
+                      <p className="font-bold text-sm text-gray-900 dark:text-white">{h.name}</p>
+                      <p className="text-[10px] font-medium text-gray-500 dark:text-slate-400 mt-1">{format(new Date(h.date), 'dd MMMM yyyy')}</p>
+                    </div>
+                    <div className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap shadow-inner">
+                      In {Math.ceil((new Date(h.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
       </div>
