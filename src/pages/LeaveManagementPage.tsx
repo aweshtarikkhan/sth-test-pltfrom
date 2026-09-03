@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
@@ -229,12 +229,14 @@ export default function LeaveManagementPage({ session }: { session: any }) {
       </div>
 
       <Dialog open={applyOpen} onOpenChange={(open) => { setApplyOpen(open); if (!open) { setLeaveData({ startDate: "", endDate: "", leaveType: "casual", reason: "" }); setDurationType("single"); } }}>
-        <DialogContent className="rounded-2xl w-[92vw] max-w-md p-6">
-          <DialogHeader className="text-left space-y-1 mb-4">
-            <DialogTitle className="text-lg font-bold text-[#0a192f]">Apply for Leave</DialogTitle>
-            <DialogDescription className="text-sm text-gray-500">Fill in the details to submit a leave request.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+        <DialogContent className="rounded-2xl w-[92vw] max-w-md p-0 max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div className="p-6 pb-2 shrink-0">
+            <DialogHeader className="text-left space-y-1">
+              <DialogTitle className="text-lg font-bold text-[#0a192f]">Apply for Leave</DialogTitle>
+              <DialogDescription className="text-sm text-gray-500">Fill in the details to submit a leave request.</DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 py-2 overflow-y-auto flex-1 space-y-4" style={{ WebkitOverflowScrolling: 'touch' as any }}>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Leave Type</label>
               <select className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 text-[#0a192f]" value={leaveData.leaveType} onChange={e => setLeaveData({ ...leaveData, leaveType: e.target.value })}>
@@ -268,12 +270,12 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Reason</label>
               <div className="relative">
-                <textarea className="w-full min-h-[90px] rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 text-[#0a192f]" placeholder="Brief reason for your leave..." maxLength={500} value={leaveData.reason} onChange={e => setLeaveData({ ...leaveData, reason: e.target.value })} />
+                <textarea className="w-full min-h-[70px] rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 text-[#0a192f]" placeholder="Brief reason for your leave..." maxLength={500} value={leaveData.reason} onChange={e => setLeaveData({ ...leaveData, reason: e.target.value })} />
                 <span className="absolute bottom-2 right-3 text-[10px] text-gray-400">{leaveData.reason.length}/500</span>
               </div>
             </div>
           </div>
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-3 p-6 pt-3 shrink-0 border-t border-gray-100 bg-white">
             <Button variant="outline" onClick={() => setApplyOpen(false)} className="flex-1 h-11 rounded-xl font-bold">Cancel</Button>
             <Button onClick={handleApplyLeave} disabled={actionLoading} className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold">
               {actionLoading ? "Submitting..." : "Submit Leave"}
