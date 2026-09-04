@@ -499,7 +499,7 @@ const [showMentions, setShowMentions] = React.useState(false);
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col pb-4 px-2 pt-2">
+    <div className="flex-1 h-full min-h-0 flex flex-col pb-4 px-2 pt-2">
       <div className={`relative z-10 flex justify-between items-end mb-4 px-2 shrink-0 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Team Chat</h1>
@@ -922,3 +922,4 @@ class ErrorBoundary extends React.Component<any, any> {
 export default function ChatPageWrapper(props: any) {
   return <ErrorBoundary><ChatPage {...props} /></ErrorBoundary>;
 }
+
