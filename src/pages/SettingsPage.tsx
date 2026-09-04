@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { CalendarDays, User, HelpCircle, LogOut, ChevronRight, Download } from 'lucide-react';
+import { CalendarDays, User, HelpCircle, LogOut, ChevronRight, Download, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,6 +19,7 @@ export default function SettingsPage({ session }: { session: any }) {
 
   const settingsOptions = [
     { name: 'Profile Settings', icon: User, path: '/profile', description: 'Update your personal details' },
+    { name: 'My Documents', icon: FileText, path: '/documents', description: 'View & download employee documents' },
     { name: 'Holiday List', icon: CalendarDays, path: '/holidays', description: 'View company holidays' },
     { name: 'Help & Support', icon: HelpCircle, path: '/chat?support=true', description: 'Contact HR or IT' },
   ];

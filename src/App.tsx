@@ -9,6 +9,7 @@ import HolidaysPage from './pages/HolidaysPage';
 import ChatPage from './pages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
+import DocumentsPage from './pages/DocumentsPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import InstallPrompt from './components/InstallPrompt';
 import { Toaster } from '@/components/ui/toaster';
@@ -51,6 +52,7 @@ function App() {
             <Route path="/holidays" element={<HolidaysPage session={session} />} />
             <Route path="/chat" element={<ChatPage session={session} />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/documents" element={<DocumentsPage session={session} />} />
             <Route path="/settings" element={<SettingsPage session={session} />} />
           </Route>
         )}

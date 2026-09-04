@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import {  LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, LogOut, MessageCircle, Moon, Sun, X, CheckCircle2, Menu, ChevronRight, Fingerprint, Settings, Home } from 'lucide-react';
+import {  LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, LogOut, MessageCircle, Moon, Sun, X, CheckCircle2, Menu, ChevronRight, Fingerprint, Settings, Home, FileCheck } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -338,6 +338,15 @@ export default function DashboardLayout() {
     { name: 'Chat', icon: MessageCircle, path: '/chat' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
+
+  const sidebarNavItems = [
+    { name: 'Home', icon: Home, path: '/dashboard' },
+    { name: 'History', icon: History, path: '/history' },
+    { name: 'Leaves', icon: Umbrella, path: '/leaves' },
+    { name: 'Documents', icon: FileCheck, path: '/documents' },
+    { name: 'Chat', icon: MessageCircle, path: '/chat' },
+    { name: 'Settings', icon: Settings, path: '/settings' },
+  ];
   
   const sidebarContent = (
     <>
@@ -368,7 +377,7 @@ export default function DashboardLayout() {
       </NavLink>
 
       <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto bg-[#0a192f]">
-        {navItems.map((item) => (
+        {sidebarNavItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
