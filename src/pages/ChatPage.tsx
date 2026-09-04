@@ -365,7 +365,7 @@ const [showMentions, setShowMentions] = React.useState(false);
         }
       }
 
-      const payload: any = {
+            const payload: any = {
         org_id: employee.org_id,
         sender_id: employee.id,
         message: newMessage.trim(),
@@ -378,8 +378,42 @@ const [showMentions, setShowMentions] = React.useState(false);
         payload.group_id = selectedTarget.id;
       }
 
-      const { error } = await supabase.from('chat_messages').insert(payload);
+      const { error, data: insertedMsg } = await supabase.from('chat_messages').insert(payload).select().single();
       if (error) throw error;
+      
+      // Notify recipients consistently
+      if (selectedType === 'group') {
+        const { data: members } = await supabase.from('chat_group_members').select('employee_id, employees!inner(auth_user_id)').eq('group_id', selectedTarget.id);
+        if (members && members.length > 0) {
+          const notificationsToInsert = members
+            .filter(m => m.employee_id !== employee.id) // excluding sender
+            .map(m => ({
+              org_id: employee.org_id,
+              user_id: m.employees.auth_user_id,
+              title: "New message in " + selectedTarget.name,
+              message: employee.name + ": " + payload.message.substring(0, 50) + (payload.message.length > 50 ? '...' : ''),
+              type: 'chat',
+              reference_id: 'chat-' + insertedMsg.id
+            }));
+            
+          if (notificationsToInsert.length > 0) {
+            await supabase.from('notifications').insert(notificationsToInsert);
+          }
+        }
+      } else if (selectedType === 'dm') {
+          const { data: targetUser } = await supabase.from('employees').select('auth_user_id').eq('id', selectedTarget.id).single();
+          if (targetUser?.auth_user_id) {
+             await supabase.from('notifications').insert({
+                org_id: employee.org_id,
+                user_id: targetUser.auth_user_id,
+                title: "New message from " + employee.name,
+                message: payload.message.substring(0, 50) + (payload.message.length > 50 ? '...' : ''),
+                type: 'chat',
+                reference_id: 'chat-' + insertedMsg.id
+             });
+          }
+      }
+
       setNewMessage("");
     } catch (err: any) {
       toast({ title: 'Failed to send', description: err.message, variant: 'destructive' });
@@ -922,4 +956,6 @@ class ErrorBoundary extends React.Component<any, any> {
 export default function ChatPageWrapper(props: any) {
   return <ErrorBoundary><ChatPage {...props} /></ErrorBoundary>;
 }
+
+
 
