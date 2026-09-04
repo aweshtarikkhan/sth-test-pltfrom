@@ -116,14 +116,23 @@ export default function HistoryPage({ session }: { session: any }) {
           const ds = format(d, 'yyyy-MM-dd');
           const isWeekOff = weeklyOffs.includes(d.getDay());
           const isHol = holidays.some(h => h.date === ds);
-          const hasLeave = leaves.some(l => ds >= l.start_date && ds <= l.end_date);
+          const hasLeave = leaves.some(l => ds >= l.start_date && ds <= (l.end_date || l.start_date));
           const existing = attMap[ds];
 
+          if (hasLeave) {
+            return {
+              id: existing?.id || `leave-${ds}`,
+              date: ds,
+              status: 'approved_leave',
+              clock_in_time: existing?.clock_in_time || null,
+              clock_out_time: existing?.clock_out_time || null
+            };
+          }
           if (existing) {
             const calculatedStatus = getEffectiveAttendanceStatus(existing, shift);
             return {
               ...existing,
-              status: calculatedStatus
+              status: existing.status && existing.status !== 'present' ? existing.status : calculatedStatus
             };
           }
           if (isWeekOff || isHol) {
@@ -131,15 +140,6 @@ export default function HistoryPage({ session }: { session: any }) {
               id: `hol-${ds}`,
               date: ds,
               status: 'holiday',
-              clock_in_time: null,
-              clock_out_time: null
-            };
-          }
-          if (hasLeave) {
-            return {
-              id: `leave-${ds}`,
-              date: ds,
-              status: 'approved_leave',
               clock_in_time: null,
               clock_out_time: null
             };

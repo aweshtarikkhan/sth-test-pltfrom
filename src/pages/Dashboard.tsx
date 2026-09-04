@@ -96,7 +96,7 @@ export default function Dashboard({ session }: { session: any }) {
           supabase.from('attendances').select('*').eq('employee_id', empData.id).eq('date', todayStr).maybeSingle(),
           supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', todayStr).order('date', { ascending: true }).limit(2),
           (supabase as any).from('employee_shifts').select('*, shifts(*)').eq('employee_id', empData.id).maybeSingle(),
-          supabase.from('leave_balances').select('*').eq('employee_id', empData.id),
+          (supabase as any).from('employee_leave_balances').select('*').eq('employee_id', empData.id),
           supabase.from('organizations').select('weekly_offs').eq('id', empData.org_id).single(),
           supabase.from('holidays').select('*').eq('org_id', empData.org_id).gte('date', start).lte('date', end),
           supabase.from('leaves').select('*').eq('employee_id', empData.id).eq('status', 'approved').lte('start_date', end).gte('end_date', start)
@@ -149,8 +149,13 @@ export default function Dashboard({ session }: { session: any }) {
           const ds = format(d, 'yyyy-MM-dd');
           const isWeekOff = weeklyOffs.includes(d.getDay());
           const isHol = holidays.some(hol => hol.date === ds);
-          const hasLeave = leaves.some(leave => ds >= leave.start_date && ds <= leave.end_date);
+          const hasLeave = leaves.some(leave => ds >= leave.start_date && ds <= (leave.end_date || leave.start_date));
           const existing = attMap[ds];
+
+          if (hasLeave) {
+            // Counted under leave, not present or absent
+            return;
+          }
 
           if (existing) {
             const status = getEffectiveAttendanceStatus(existing, resolvedShift);
@@ -159,7 +164,7 @@ export default function Dashboard({ session }: { session: any }) {
             else if (status === 'half_day' || status === 'half-day') h++;
             else if (status === 'absent') a++;
           } else {
-            if (!isWeekOff && !isHol && !hasLeave) {
+            if (!isWeekOff && !isHol) {
               a++;
             }
           }
