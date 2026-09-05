@@ -559,11 +559,11 @@ const [showMentions, setShowMentions] = React.useState(false);
 
       <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Sidebar */}
-        <div className={`w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-80 flex flex-col shrink-0 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 ${selectedTarget ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-100 dark:border-slate-700/50 hidden">
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+          <div className="flex-1 overflow-y-auto p-3 space-y-1 max-h-[calc(100vh-14rem)] md:max-h-none">
             <>
                 {/* Groups Section */}
                 <div className="mb-4">
