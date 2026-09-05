@@ -300,8 +300,32 @@ export default function DashboardLayout() {
       )
       .subscribe();
 
+    // Real-time listener for notifications table (for group chat notifications)
+    const notifChannel = supabase
+      .channel('dashboard-notifications-' + employee.id)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${employee.auth_user_id}` },
+        (payload) => {
+          const notif = payload.new as any;
+          // Only add if not already present (chat notifications are added via chatChannel too)
+          if (notif.type !== 'chat') {
+            setNotifications(prev => {
+              if (prev.find(n => n.id === notif.id)) return prev;
+              return [notif, ...prev].slice(0, 15);
+            });
+          }
+          // Update leave unread count
+          if (['leave_approved', 'leave_rejected', 'leave_request'].includes(notif.type)) {
+            setUnreadLeaves(prev => prev + 1);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(chatChannel);
+      supabase.removeChannel(notifChannel);
     };
   }, [employee]);
 

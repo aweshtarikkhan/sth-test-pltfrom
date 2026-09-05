@@ -386,21 +386,34 @@ const [showMentions, setShowMentions] = React.useState(false);
       
       // Notify recipients consistently
       if (selectedType === 'group') {
-        const { data: members } = await supabase.from('chat_group_members').select('employee_id, employees!inner(auth_user_id)').eq('group_id', selectedTarget.id);
+        const { data: members } = await supabase.from('chat_group_members')
+          .select('employee_id')
+          .eq('group_id', selectedTarget.id);
         if (members && members.length > 0) {
-          const notificationsToInsert = members
-            .filter(m => m.employee_id !== employee.id) // excluding sender
-            .map(m => ({
-              org_id: employee.org_id,
-              user_id: m.employees.auth_user_id,
-              title: "New message in " + selectedTarget.name,
-              message: employee.name + ": " + payload.message.substring(0, 50) + (payload.message.length > 50 ? '...' : ''),
-              type: 'chat',
-              reference_id: 'chat-' + insertedMsg.id
-            }));
+          // Fetch auth_user_id for each member (excluding sender)
+          const otherMemberIds = members
+            .map(m => m.employee_id)
+            .filter(id => id !== employee.id);
+          
+          if (otherMemberIds.length > 0) {
+            const { data: empUsers } = await supabase.from('employees')
+              .select('auth_user_id')
+              .in('id', otherMemberIds);
             
-          if (notificationsToInsert.length > 0) {
-            await supabase.from('notifications').insert(notificationsToInsert);
+            const notificationsToInsert = (empUsers || [])
+              .filter(e => e.auth_user_id)
+              .map(e => ({
+                org_id: employee.org_id,
+                user_id: e.auth_user_id,
+                title: "New message in " + selectedTarget.name,
+                message: employee.name + ": " + payload.message.substring(0, 50) + (payload.message.length > 50 ? '...' : ''),
+                type: 'chat',
+                reference_id: 'chat-' + insertedMsg.id
+              }));
+              
+            if (notificationsToInsert.length > 0) {
+              await supabase.from('notifications').insert(notificationsToInsert);
+            }
           }
         }
       } else if (selectedType === 'dm') {
