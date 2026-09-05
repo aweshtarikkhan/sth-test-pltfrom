@@ -342,8 +342,11 @@ const [showMentions, setShowMentions] = React.useState(false);
   }, [employee, selectedTarget, selectedType, selectedConnection]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [messages, selectedTarget]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
