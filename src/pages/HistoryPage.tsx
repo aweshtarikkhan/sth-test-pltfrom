@@ -149,8 +149,8 @@ export default function HistoryPage({ session }: { session: any }) {
           if (ds === todayStr) {
             const now = new Date();
             const toMins = (t: string) => { if (!t) return 0; const [h,m] = t.split(':').map(Number); return h*60+m; };
-            const graceEnd = toMins(shift?.start_time || '09:00') + (shift?.grace_minutes ?? 15);
-            if (now.getHours() * 60 + now.getMinutes() < graceEnd) {
+            const halfEnd = toMins(shift?.half_day_end || '14:00');
+            if (now.getHours() * 60 + now.getMinutes() <= halfEnd) {
               isAbsent = false;
             }
           }
