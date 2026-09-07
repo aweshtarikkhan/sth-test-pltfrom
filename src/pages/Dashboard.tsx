@@ -165,7 +165,16 @@ export default function Dashboard({ session }: { session: any }) {
             else if (status === 'absent') a++;
           } else {
             if (!isWeekOff && !isHol) {
-              a++;
+              if (ds === todayStr) {
+                const now = new Date();
+                const toMins = (t: string) => { if (!t) return 0; const [h,m] = t.split(':').map(Number); return h*60+m; };
+                const graceEnd = toMins(resolvedShift?.start_time || '09:00') + (resolvedShift?.grace_minutes ?? 15);
+                if (now.getHours() * 60 + now.getMinutes() >= graceEnd) {
+                  a++;
+                }
+              } else {
+                a++;
+              }
             }
           }
         });

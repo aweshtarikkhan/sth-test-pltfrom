@@ -145,14 +145,28 @@ export default function HistoryPage({ session }: { session: any }) {
             };
           }
           // Past day without attendance -> Absent
-          return {
-            id: `absent-${ds}`,
-            date: ds,
-            status: 'absent',
-            clock_in_time: null,
-            clock_out_time: null
-          };
-        });
+          let isAbsent = true;
+          if (ds === todayStr) {
+            const now = new Date();
+            const toMins = (t: string) => { if (!t) return 0; const [h,m] = t.split(':').map(Number); return h*60+m; };
+            const graceEnd = toMins(shift?.start_time || '09:00') + (shift?.grace_minutes ?? 15);
+            if (now.getHours() * 60 + now.getMinutes() < graceEnd) {
+              isAbsent = false;
+            }
+          }
+
+          if (isAbsent) {
+            return {
+              id: `absent-${ds}`,
+              date: ds,
+              status: 'absent',
+              clock_in_time: null,
+              clock_out_time: null
+            };
+          }
+          
+          return null;
+        }).filter(Boolean);
 
         setRecords(fullRecords.reverse());
       }
