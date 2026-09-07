@@ -28,6 +28,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
   const [leaveBalances, setLeaveBalances] = useState<Record<string, { used: number; accrued: number; annual: number }>>({});
+  const [insufficientError, setInsufficientError] = useState<{remaining: number, days: number, typeName: string} | null>(null);
 
   const [leaveData, setLeaveData] = useState({
     startDate: "",
@@ -94,7 +95,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
         const remaining = Math.max(0, bal.annual - bal.used);
         if (days > remaining) {
           const typeName = LEAVE_OPTIONS.find(t => t.key === leaveData.leaveType)?.label || leaveData.leaveType;
-          toast({ title: "Insufficient Leave Balance", description: `You have ${remaining} day(s) of ${typeName} remaining but applying for ${days} day(s).`, variant: "destructive" });
+          setInsufficientError({ remaining, days, typeName });
           setActionLoading(false);
           return;
         }
@@ -279,6 +280,25 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             <Button variant="outline" onClick={() => setApplyOpen(false)} className="flex-1 h-11 rounded-xl font-bold">Cancel</Button>
             <Button onClick={handleApplyLeave} disabled={actionLoading} className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold">
               {actionLoading ? "Submitting..." : "Submit Leave"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!insufficientError} onOpenChange={(o) => !o && setInsufficientError(null)}>
+        <DialogContent className="sm:max-w-md text-center max-w-[90%] rounded-2xl p-6 z-[200000]">
+          <div className="flex flex-col items-center justify-center gap-4 py-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-2">
+              <XCircle className="w-8 h-8" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-center">Insufficient Leave Balance</DialogTitle>
+              <DialogDescription className="text-center text-base mt-2 text-gray-600 dark:text-gray-300">
+                You have <strong className="text-gray-900 dark:text-white">{insufficientError?.remaining} day(s)</strong> of {insufficientError?.typeName} remaining but you are applying for <strong className="text-gray-900 dark:text-white">{insufficientError?.days} day(s)</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <Button className="w-full mt-4 h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold dark:bg-gray-700 dark:hover:bg-gray-600" onClick={() => setInsufficientError(null)}>
+              Okay, I understand
             </Button>
           </div>
         </DialogContent>
