@@ -562,9 +562,9 @@ export default function DashboardLayout() {
               <div className="flex-1">
                 <Outlet />
               </div>
-              <div className="w-full flex items-center justify-center gap-1 text-[12px] font-semibold text-gray-500 dark:text-slate-400 mt-8 shrink-0 pb-4">
+              <div className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400 mt-8 shrink-0 pb-4">
                 <span>Powered by</span>
-                <img src={logoImg} alt="AassayBiz" className="h-5 object-contain opacity-95 mt-0.5" />
+                <img src={logoImg} alt="AassayBiz" className="h-8 md:h-9 w-auto object-contain opacity-95" />
               </div>
             </div>
           </div>
