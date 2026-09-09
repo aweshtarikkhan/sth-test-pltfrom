@@ -357,7 +357,7 @@ export default function ProfilePage() {
               <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone Number</Label>
               <div className="relative">
                 <Phone className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <Input 
+                <Input maxLength={15} 
                   value={phone} 
                   onChange={e => {
                     const val = e.target.value.replace(/\D/g, '').slice(0, 10);
