@@ -108,9 +108,14 @@ export default function HistoryPage({ session }: { session: any }) {
         const attMap: Record<string, any> = {};
         (monthData || []).forEach(r => { attMap[r.date] = r; });
 
+        const joiningDateStr = empData.joining_date || format(new Date(empData.created_at || new Date()), 'yyyy-MM-dd');
         const monthDays = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
         // Show days up to today for past/current month
-        const eligibleDays = monthDays.filter(d => format(d, 'yyyy-MM-dd') <= todayStr);
+        const eligibleDays = monthDays.filter(d => {
+          const dStr = format(d, 'yyyy-MM-dd');
+          const hasRecord = !!attMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
+          return dStr <= todayStr && (dStr >= joiningDateStr || hasRecord);
+        });
 
         const fullRecords = eligibleDays.map(d => {
           const ds = format(d, 'yyyy-MM-dd');

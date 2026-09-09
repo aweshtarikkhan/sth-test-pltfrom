@@ -140,7 +140,8 @@ export default function Dashboard({ session }: { session: any }) {
         
         const eligibleDays = dateInterval.filter(d => {
           const dStr = format(d, 'yyyy-MM-dd');
-          return dStr <= todayStr && dStr >= joiningDateStr;
+          const hasRecord = !!attMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
+          return dStr <= todayStr && (dStr >= joiningDateStr || hasRecord);
         });
 
         let p = 0, l = 0, a = 0, h = 0;
