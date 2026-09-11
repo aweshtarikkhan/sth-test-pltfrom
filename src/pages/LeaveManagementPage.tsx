@@ -285,7 +285,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => { if (d) { setLeaveData({ ...leaveData, startDate: format(d, "yyyy-MM-dd") }); setCalOpen2(false); } }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                      <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => { if (d) { const newStart = format(d, "yyyy-MM-dd"); const updates: any = { startDate: newStart }; if (leaveData.endDate && d > parseISO(leaveData.endDate)) { updates.endDate = newStart; } setLeaveData({ ...leaveData, ...updates }); setCalOpen2(false); } }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
                     </PopoverContent>
                   </Popover>
                 </div>
