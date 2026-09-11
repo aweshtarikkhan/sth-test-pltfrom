@@ -42,6 +42,9 @@ export default function LeaveManagementPage({ session }: { session: any }) {
   });
 
   const [durationType, setDurationType] = useState<"single" | "multiple">("single");
+  const [calOpen1, setCalOpen1] = useState(false);
+  const [calOpen2, setCalOpen2] = useState(false);
+  const [calOpen3, setCalOpen3] = useState(false);
 
   const loadData = async () => {
     try {
@@ -258,7 +261,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             {durationType === "single" ? (
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Leave Date</label>
-                <Popover>
+                <Popover open={calOpen1} onOpenChange={setCalOpen1}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl", !leaveData.startDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -266,12 +269,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => {
-                      if (d) {
-                        const str = format(d, "yyyy-MM-dd");
-                        setLeaveData({ ...leaveData, startDate: str, endDate: str });
-                      }
-                    }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                    <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => { if (d) { const str = format(d, "yyyy-MM-dd"); setLeaveData({ ...leaveData, startDate: str, endDate: str }); setCalOpen1(false); } }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -279,7 +277,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">From</label>
-                  <Popover>
+                  <Popover open={calOpen2} onOpenChange={setCalOpen2}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl px-3", !leaveData.startDate && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -287,15 +285,13 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => {
-                        if (d) setLeaveData({ ...leaveData, startDate: format(d, "yyyy-MM-dd") });
-                      }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                      <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => { if (d) { setLeaveData({ ...leaveData, startDate: format(d, "yyyy-MM-dd") }); setCalOpen2(false); } }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
                     </PopoverContent>
                   </Popover>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">To</label>
-                  <Popover>
+                  <Popover open={calOpen3} onOpenChange={setCalOpen3}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl px-3", !leaveData.endDate && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -303,9 +299,7 @@ export default function LeaveManagementPage({ session }: { session: any }) {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={leaveData.endDate ? parseISO(leaveData.endDate) : undefined} onSelect={d => {
-                        if (d) setLeaveData({ ...leaveData, endDate: format(d, "yyyy-MM-dd") });
-                      }} disabled={d => leaveData.startDate ? d < parseISO(leaveData.startDate) : d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                      <Calendar mode="single" selected={leaveData.endDate ? parseISO(leaveData.endDate) : undefined} onSelect={d => { if (d) { setLeaveData({ ...leaveData, endDate: format(d, "yyyy-MM-dd") }); setCalOpen3(false); } }} disabled={d => leaveData.startDate ? d < parseISO(leaveData.startDate) : d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
                     </PopoverContent>
                   </Popover>
                 </div>
