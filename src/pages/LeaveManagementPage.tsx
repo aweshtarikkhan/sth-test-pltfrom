@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
-import { Umbrella, CheckCircle2, XCircle, Clock, ChevronRight } from "lucide-react";
+import { Umbrella, CheckCircle2, XCircle, Clock, ChevronRight, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+
 
 const LEAVE_OPTIONS = [
   { key: "casual",    label: "Casual Leave" },
@@ -254,17 +258,56 @@ export default function LeaveManagementPage({ session }: { session: any }) {
             {durationType === "single" ? (
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Leave Date</label>
-                <Input type="date" value={leaveData.startDate} onChange={e => setLeaveData({ ...leaveData, startDate: e.target.value, endDate: e.target.value })} min={format(new Date(), "yyyy-MM-dd")} className="h-11 rounded-xl text-sm" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl", !leaveData.startDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {leaveData.startDate ? format(parseISO(leaveData.startDate), "dd/MM/yyyy") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => {
+                      if (d) {
+                        const str = format(d, "yyyy-MM-dd");
+                        setLeaveData({ ...leaveData, startDate: str, endDate: str });
+                      }
+                    }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                  </PopoverContent>
+                </Popover>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">From</label>
-                  <Input type="date" value={leaveData.startDate} onChange={e => setLeaveData({ ...leaveData, startDate: e.target.value })} min={format(new Date(), "yyyy-MM-dd")} className="h-11 rounded-xl text-sm" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl px-3", !leaveData.startDate && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">{leaveData.startDate ? format(parseISO(leaveData.startDate), "dd/MM/yyyy") : "Pick a date"}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={leaveData.startDate ? parseISO(leaveData.startDate) : undefined} onSelect={d => {
+                        if (d) setLeaveData({ ...leaveData, startDate: format(d, "yyyy-MM-dd") });
+                      }} disabled={d => d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">To</label>
-                  <Input type="date" value={leaveData.endDate} onChange={e => setLeaveData({ ...leaveData, endDate: e.target.value })} min={leaveData.startDate || format(new Date(), "yyyy-MM-dd")} className="h-11 rounded-xl text-sm" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full h-11 justify-start text-left font-normal rounded-xl px-3", !leaveData.endDate && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">{leaveData.endDate ? format(parseISO(leaveData.endDate), "dd/MM/yyyy") : "Pick a date"}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={leaveData.endDate ? parseISO(leaveData.endDate) : undefined} onSelect={d => {
+                        if (d) setLeaveData({ ...leaveData, endDate: format(d, "yyyy-MM-dd") });
+                      }} disabled={d => leaveData.startDate ? d < parseISO(leaveData.startDate) : d < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             )}
