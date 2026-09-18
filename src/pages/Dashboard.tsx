@@ -423,24 +423,18 @@ export default function Dashboard({ session }: { session: any }) {
         {/* Ad Banner Carousel */}
         {ads.length > 0 && (
           <div className="relative rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+            {/* Top Right Sponsored Badge */}
+            <div className="bg-black/60 dark:bg-black/70 text-white text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-bl-xl absolute top-0 right-0 z-20 shadow-xs backdrop-blur-xs pointer-events-none">
+              Sponsored
+            </div>
+
             <div className="relative w-full" style={{ minHeight: '120px' }}>
               {ads.map((ad, idx) => {
-                let isSponsored = false;
-                try {
-                  const parsed = JSON.parse(ad.title || '{}');
-                  isSponsored = parsed.isSponsored === true;
-                } catch(e) {}
-                
                 return (
                   <div
                     key={ad.id}
                     className={`w-full transition-opacity duration-500 ${idx === currentAdSlide ? 'block opacity-100' : 'hidden opacity-0'}`}
                   >
-                    {isSponsored && (
-                      <div className="bg-white/90 dark:bg-slate-800/90 text-gray-800 dark:text-gray-200 text-[10px] px-2 py-0.5 rounded-bl-lg absolute top-0 right-0 font-medium z-10 shadow-sm backdrop-blur-sm">
-                        Sponsored
-                      </div>
-                    )}
                     {ad.link_url ? (
                       <a href={ad.link_url} target="_blank" rel="noopener noreferrer">
                         <img src={ad.image_url} alt={ad.title || 'Ad'} className="w-full h-auto object-cover rounded-2xl" style={{ maxHeight: '200px' }} />
