@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -123,8 +123,8 @@ export default function DocumentsPage({ session }: { session: any }) {
       toast({ title: 'Please select a file', variant: 'destructive' });
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast({ title: 'File too large', description: 'Maximum file size is 2MB', variant: 'destructive' });
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Maximum file size is 25MB', variant: 'destructive' });
       return;
     }
 
@@ -177,38 +177,41 @@ export default function DocumentsPage({ session }: { session: any }) {
         </Button>
       </div>
 
-      {/* Upload Form Card */}
+      {/* Upload Form Modal / Collapsible */}
       {showUpload && (
-        <Card className="rounded-3xl shadow-sm border border-orange-200 dark:border-orange-950/40 bg-orange-50/30 dark:bg-slate-800 mb-6 p-4">
-          <CardContent className="p-0">
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-3 flex items-center gap-2">
-              <Upload className="w-4 h-4 text-orange-500" /> Upload New Document
-            </h3>
+        <Card className="mb-6 border-orange-200 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/50 to-white dark:from-slate-900 dark:to-slate-900/80 shadow-sm rounded-2xl overflow-hidden">
+          <CardHeader className="pb-3 pt-4 px-4">
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+              <Upload className="w-4 h-4 text-orange-500" />
+              Upload Document
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
             <form onSubmit={handleUpload} className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs font-semibold text-gray-600 dark:text-gray-300">Document Type</Label>
                   <Select value={docType} onValueChange={setDocType}>
-                    <SelectTrigger className="mt-1 h-9 rounded-xl bg-white dark:bg-slate-900 border-gray-200">
-                      <SelectValue />
+                    <SelectTrigger className="mt-1 h-9 rounded-xl bg-white dark:bg-slate-900 border-gray-200 text-xs">
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {DOC_TYPES.map(t => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      {DOC_TYPES.map((t) => (
+                        <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs font-semibold text-gray-600 dark:text-gray-300">File (Max 2MB)</Label>
+                  <Label className="text-xs font-semibold text-gray-600 dark:text-gray-300">File (Max 25MB)</Label>
                   <Input
                     type="file"
                     className="mt-1 h-9 rounded-xl bg-white dark:bg-slate-900 border-gray-200 text-xs"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
                       if (f) {
-                        if (f.size > 2 * 1024 * 1024) {
-                          toast({ title: 'File too large', description: 'Max file size is 2MB', variant: 'destructive' });
+                        if (f.size > 25 * 1024 * 1024) {
+                          toast({ title: 'File too large', description: 'Max file size is 25MB', variant: 'destructive' });
                           e.target.value = '';
                           setFile(null);
                         } else {

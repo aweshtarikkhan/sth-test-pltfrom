@@ -83,6 +83,11 @@ export default function HistoryPage({ session }: { session: any }) {
         ]);
 
         let shift = shiftData?.shifts || null;
+        const targetShiftId = shiftData?.shift_id || empData.shift_id;
+        if (!shift && targetShiftId) {
+          const { data: directShift } = await supabase.from('shifts').select('*').eq('id', targetShiftId).maybeSingle();
+          if (directShift) shift = directShift;
+        }
         if (!shift) {
           const { data: orgShifts } = await (supabase as any)
             .from('shifts')

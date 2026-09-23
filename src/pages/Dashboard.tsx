@@ -103,8 +103,9 @@ export default function Dashboard({ session }: { session: any }) {
         ]);
 
         let resolvedShift = shiftData?.shifts || null;
-        if (!resolvedShift && empData.shift_id) {
-          const { data: directShift } = await supabase.from('shifts').select('*').eq('id', empData.shift_id).maybeSingle();
+        const targetShiftId = shiftData?.shift_id || empData.shift_id;
+        if (!resolvedShift && targetShiftId) {
+          const { data: directShift } = await supabase.from('shifts').select('*').eq('id', targetShiftId).maybeSingle();
           if (directShift) resolvedShift = directShift;
         }
         if (!resolvedShift) {
