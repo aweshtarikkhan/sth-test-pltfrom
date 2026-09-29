@@ -7,6 +7,35 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import logoImg from '@/assets/logo.png';
 
+/**
+ * Format business/organization name for mobile display:
+ * Limits name to maximum 4 words AND maximum 40 characters (whichever is reached first)
+ * and appends '...' gracefully so mobile top header never breaks or overflows.
+ */
+function formatBusinessName(name?: string, maxWords = 4, maxChars = 40): string {
+  if (!name) return 'AassayBiz';
+  const trimmed = name.trim();
+  if (!trimmed) return 'AassayBiz';
+
+  let result = trimmed;
+  const words = trimmed.split(/\s+/);
+
+  // 1. Truncate by word count if exceeding maxWords
+  if (words.length > maxWords) {
+    result = words.slice(0, maxWords).join(' ') + '...';
+  }
+
+  // 2. Truncate by character count if exceeding maxChars
+  const hasEllipsis = result.endsWith('...');
+  const baseText = hasEllipsis ? result.slice(0, -3).trim() : result;
+
+  if (baseText.length > maxChars) {
+    result = baseText.slice(0, maxChars).trim() + '...';
+  }
+
+  return result;
+}
+
 export default function DashboardLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [employee, setEmployee] = useState<any>(null);
@@ -571,17 +600,17 @@ export default function DashboardLayout() {
       <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative">
         {/* Header - Dark Blue AassayBiz Theme */}
         <header className="h-14 bg-[#0a192f] flex items-center justify-between px-4 md:px-8 z-10 shrink-0 shadow-md">
-          <div className="flex items-center">
-            {/* Mobile App Name */}
-            <div className="md:hidden flex items-center">
-              <div className="text-white font-bold text-lg tracking-wide capitalize">
-                {organization?.name || 'AassayBiz'}
+          <div className="flex items-center min-w-0 mr-2 flex-1">
+            {/* Mobile App Name (max 40 chars & max 4 words) */}
+            <div className="md:hidden flex items-center min-w-0" title={organization?.name || 'AassayBiz'}>
+              <div className="text-white font-bold text-base sm:text-lg tracking-wide capitalize truncate max-w-[220px] xs:max-w-[280px]">
+                {formatBusinessName(organization?.name)}
               </div>
             </div>
 
-            {/* Desktop Title / Clock */}
-            <div className="hidden md:block text-sm text-white">
-              <div className="font-bold tracking-wide text-base capitalize">
+            {/* Desktop Title */}
+            <div className="hidden md:block text-sm text-white min-w-0" title={organization?.name || 'AassayBiz'}>
+              <div className="font-bold tracking-wide text-base capitalize truncate max-w-md">
                 {organization?.name || 'AassayBiz'}
               </div>
             </div>
