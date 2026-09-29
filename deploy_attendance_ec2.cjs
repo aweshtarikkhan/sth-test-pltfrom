@@ -1,10 +1,15 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const { Client } = require('ssh2');
 
 const privateKey = fs.readFileSync('C:\\Users\\awesh\\.ssh\\aassaybiz-key.pem', 'utf8');
 const localTar = path.join(__dirname, 'dist_attendance.tar.gz');
 const remoteTar = '/home/ubuntu/dist_attendance.tar.gz';
+
+console.log('Archiving fresh dist folder to dist_attendance.tar.gz...');
+execSync('tar -czvf dist_attendance.tar.gz -C dist .', { stdio: 'inherit', cwd: __dirname });
+console.log('Archive created successfully.');
 
 const conn = new Client();
 
