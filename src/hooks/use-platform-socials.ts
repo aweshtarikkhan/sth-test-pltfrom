@@ -54,7 +54,7 @@ export async function savePlatformSocials(socials: PlatformSocials): Promise<{ s
     if (existing?.id) {
       const { error } = await supabase
         .from("portal_ads")
-        .update({ link_url: payload })
+        .update({ link_url: payload, is_active: false })
         .eq("id", existing.id);
       if (error) throw error;
     } else {

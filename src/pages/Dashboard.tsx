@@ -291,8 +291,16 @@ export default function Dashboard({ session }: { session: any }) {
   useEffect(() => {
     const fetchAds = async () => {
       try {
-        const { data } = await (supabase as any).from('portal_ads').select('*').eq('is_active', true).order('sort_order', { ascending: true });
-        if (data && data.length > 0) setAds(data);
+        const { data } = await (supabase as any)
+          .from('portal_ads')
+          .select('*')
+          .eq('is_active', true)
+          .neq('title', '__platform_socials__')
+          .order('sort_order', { ascending: true });
+        if (data) {
+          const validAds = data.filter((ad: any) => ad.title !== '__platform_socials__');
+          setAds(validAds);
+        }
       } catch (e) {
         // portal_ads table may not exist yet, silently fail
       }
