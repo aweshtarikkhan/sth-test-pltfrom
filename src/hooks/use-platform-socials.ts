@@ -54,7 +54,11 @@ export async function savePlatformSocials(socials: PlatformSocials): Promise<{ s
     if (existing?.id) {
       const { error } = await supabase
         .from("portal_ads")
-        .update({ link_url: payload, is_active: false })
+        .update({ 
+          link_url: payload, 
+          is_active: false,
+          image_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" 
+        })
         .eq("id", existing.id);
       if (error) throw error;
     } else {
@@ -62,7 +66,7 @@ export async function savePlatformSocials(socials: PlatformSocials): Promise<{ s
         .from("portal_ads")
         .insert([{
           title: "__platform_socials__",
-          image_url: "https://placehold.co/100?text=Socials",
+          image_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
           link_url: payload,
           is_active: false,
           sort_order: 9999
