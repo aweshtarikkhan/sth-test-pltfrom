@@ -7,9 +7,27 @@ export function computeShiftStatus(
   shift: any
 ): 'present' | 'late' | 'half_day' | 'absent' {
   if (!clockInTime) return 'absent';
-  const d = new Date(clockInTime);
-  // Use local time (not UTC) since shift times are defined in local timezone (IST)
-  const clockInMins = d.getHours() * 60 + d.getMinutes();
+  
+  let clockInMins = 0;
+  try {
+    if (clockInTime.includes('T')) {
+      const parts = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false
+      }).formatToParts(new Date(clockInTime));
+      const hh = Number(parts.find(p => p.type === 'hour')?.value || 0);
+      const mm = Number(parts.find(p => p.type === 'minute')?.value || 0);
+      clockInMins = hh * 60 + mm;
+    } else {
+      const [h, m] = clockInTime.slice(0, 5).split(':').map(Number);
+      clockInMins = h * 60 + (m || 0);
+    }
+  } catch {
+    const d = new Date(clockInTime);
+    clockInMins = d.getHours() * 60 + d.getMinutes();
+  }
 
   // If no shift is provided, default to standard office timings: 09:00 AM start, 15m grace (09:15), late up to 10:30, half day up to 14:00
   const effectiveShift = shift || {
@@ -43,7 +61,7 @@ export function getEffectiveAttendanceStatus(
   isRegularized: boolean = false
 ): 'present' | 'late' | 'half_day' | 'absent' | 'holiday' | 'approved_leave' | 'paid_leave' {
   if (!record) return 'absent';
-  if (isRegularized) return 'present';
+  if (isRegularized || record.is_regularized || record.override_status === 'present') return 'present';
   
   if (record.status === 'holiday' || record.status === 'approved_leave' || record.status === 'paid_leave') {
     return record.status;

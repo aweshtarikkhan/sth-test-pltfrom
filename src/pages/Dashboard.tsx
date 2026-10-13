@@ -133,7 +133,8 @@ export default function Dashboard({ session }: { session: any }) {
           { data: leavePoliciesData },
           { data: allAttendancesData },
           { data: todayRegData },
-          { data: monthRegData }
+          { data: monthRegData },
+          singMonthData
         ] = await Promise.all([
           supabase.from('attendances').select('*').eq('employee_id', empData.id).gte('date', start).lte('date', end),
           supabase.from('attendances').select('*').eq('employee_id', empData.id).eq('date', todayStr).order('created_at', { ascending: false }).limit(1).maybeSingle(),
@@ -147,7 +148,8 @@ export default function Dashboard({ session }: { session: any }) {
           (supabase as any).from('leave_policies').select('*').eq('org_id', empData.org_id),
           supabase.from('attendances').select('date, clock_in_time').eq('employee_id', empData.id).not('clock_in_time', 'is', null),
           supabase.from('attendance_regularizations').select('*').eq('employee_id', empData.id).eq('date', todayStr).maybeSingle(),
-          supabase.from('attendance_regularizations').select('*').eq('employee_id', empData.id).gte('date', start).lte('date', end)
+          supabase.from('attendance_regularizations').select('*').eq('employee_id', empData.id).gte('date', start).lte('date', end),
+          (supabase as any).from('attendance').select('*').eq('employee_id', empData.id).gte('attendance_date', start).lte('attendance_date', end)
         ]);
 
         const isTodayRegApprovedLocal = todayRegData && todayRegData.status === 'approved';
@@ -252,6 +254,22 @@ export default function Dashboard({ session }: { session: any }) {
         
         const attMap: Record<string, any> = {};
         (monthData || []).forEach(r => { attMap[r.date] = r; });
+        (singMonthData?.data || []).forEach((r: any) => {
+          const ds = r.attendance_date;
+          if (ds) {
+            const existing = attMap[ds] || {};
+            attMap[ds] = {
+              ...existing,
+              id: existing.id || r.id,
+              date: ds,
+              employee_id: r.employee_id,
+              clock_in_time: existing.clock_in_time || r.clock_in_time,
+              clock_out_time: existing.clock_out_time || r.clock_out_time,
+              status: existing.status || r.override_status || r.status,
+              override_status: r.override_status,
+            };
+          }
+        });
 
         const rMap: Record<string, any> = {};
         (monthRegData || []).forEach(r => {
@@ -271,7 +289,7 @@ export default function Dashboard({ session }: { session: any }) {
         
         const eligibleDays = dateInterval.filter(d => {
           const dStr = format(d, 'yyyy-MM-dd');
-          const hasRecord = !!attMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
+          const hasRecord = !!attMap[dStr] || !!rMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
           return dStr <= todayStr && (dStr >= joiningDateStr || hasRecord);
         });
 
@@ -286,6 +304,12 @@ export default function Dashboard({ session }: { session: any }) {
 
           if (hasLeave) {
             // Counted under leave, not present or absent
+            return;
+          }
+
+          if (rMap[ds]) {
+            // Approved regularization is ALWAYS Present!
+            p++;
             return;
           }
 
@@ -529,7 +553,10 @@ export default function Dashboard({ session }: { session: any }) {
             attendance_date: today,
             clock_in_time: now,
             clock_in_location: locationData,
-            status: 'present'
+            status: 'present',
+            override_status: null,
+            hr_note: null,
+            notes: null
           }, { onConflict: 'employee_id,attendance_date' });
         } catch (syncErr) {
           console.warn("Sync to attendance (singular) failed:", syncErr);

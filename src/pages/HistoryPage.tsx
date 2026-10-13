@@ -56,7 +56,8 @@ export default function HistoryPage({ session }: { session: any }) {
           { data: holsData },
           { data: leavesData },
           { data: shiftData },
-          { data: regData }
+          { data: regData },
+          singMonthData
         ] = await Promise.all([
           supabase
             .from('attendances')
@@ -92,7 +93,13 @@ export default function HistoryPage({ session }: { session: any }) {
             .select('*')
             .eq('employee_id', empData.id)
             .gte('date', start)
-            .lte('date', end)
+            .lte('date', end),
+          (supabase as any)
+            .from('attendance')
+            .select('*')
+            .eq('employee_id', empData.id)
+            .gte('attendance_date', start)
+            .lte('attendance_date', end),
         ]);
 
         let shift = shiftData?.shifts || null;
@@ -125,13 +132,29 @@ export default function HistoryPage({ session }: { session: any }) {
         const leaves = leavesData || [];
         const attMap: Record<string, any> = {};
         (monthData || []).forEach(r => { attMap[r.date] = r; });
+        (singMonthData?.data || []).forEach((r: any) => {
+          const ds = r.attendance_date;
+          if (ds) {
+            const existing = attMap[ds] || {};
+            attMap[ds] = {
+              ...existing,
+              id: existing.id || r.id,
+              date: ds,
+              employee_id: r.employee_id,
+              clock_in_time: existing.clock_in_time || r.clock_in_time,
+              clock_out_time: existing.clock_out_time || r.clock_out_time,
+              status: existing.status || r.override_status || r.status,
+              override_status: r.override_status,
+            };
+          }
+        });
 
         const joiningDateStr = empData.joining_date || format(new Date(empData.created_at || new Date()), 'yyyy-MM-dd');
         const monthDays = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
         // Show days up to today for past/current month
         const eligibleDays = monthDays.filter(d => {
           const dStr = format(d, 'yyyy-MM-dd');
-          const hasRecord = !!attMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
+          const hasRecord = !!attMap[dStr] || !!rMap[dStr] || leaves.some(l => dStr >= l.start_date && dStr <= (l.end_date || l.start_date));
           return dStr <= todayStr && (dStr >= joiningDateStr || hasRecord);
         });
 
@@ -141,6 +164,9 @@ export default function HistoryPage({ session }: { session: any }) {
           const isHol = holidays.some(h => h.date === ds);
           const hasLeave = leaves.some(l => ds >= l.start_date && ds <= (l.end_date || l.start_date));
           const existing = attMap[ds];
+          const reg = rMap[ds];
+          const isApprovedReg = reg && reg.status === 'approved';
+          const isPendingReg = reg && reg.status === 'pending';
 
           if (hasLeave) {
             return {
@@ -151,15 +177,26 @@ export default function HistoryPage({ session }: { session: any }) {
               clock_out_time: existing?.clock_out_time || null
             };
           }
-          if (existing) {
-            const reg = rMap[ds];
-            const isApprovedReg = reg && reg.status === 'approved';
-            const calculatedStatus = getEffectiveAttendanceStatus(existing, shift, isApprovedReg);
+
+          if (isApprovedReg) {
             return {
-              ...existing,
-              status: existing.status && existing.status !== 'present' ? existing.status : calculatedStatus
+              id: existing?.id || `reg-${ds}`,
+              date: ds,
+              status: 'present',
+              clock_in_time: existing?.clock_in_time || (reg.requested_clock_in ? `${ds}T${reg.requested_clock_in}` : `${ds}T09:30:00`),
+              clock_out_time: existing?.clock_out_time || (reg.requested_clock_out ? `${ds}T${reg.requested_clock_out}` : `${ds}T18:30:00`),
+              is_regularized: true,
             };
           }
+
+          if (existing) {
+            const calculatedStatus = getEffectiveAttendanceStatus(existing, shift, false);
+            return {
+              ...existing,
+              status: calculatedStatus,
+            };
+          }
+
           if (isWeekOff || isHol) {
             return {
               id: `hol-${ds}`,
@@ -169,7 +206,8 @@ export default function HistoryPage({ session }: { session: any }) {
               clock_out_time: null
             };
           }
-          // Past day without attendance -> Absent
+
+          // Past day without attendance -> Absent or Pending Regularization
           let isAbsent = true;
           if (ds === todayStr) {
             const now = new Date();
@@ -180,13 +218,13 @@ export default function HistoryPage({ session }: { session: any }) {
             }
           }
 
-          if (isAbsent) {
+          if (isAbsent || isPendingReg) {
             return {
               id: `absent-${ds}`,
               date: ds,
               status: 'absent',
-              clock_in_time: null,
-              clock_out_time: null
+              clock_in_time: reg?.requested_clock_in ? `${ds}T${reg.requested_clock_in}` : null,
+              clock_out_time: reg?.requested_clock_out ? `${ds}T${reg.requested_clock_out}` : null,
             };
           }
           
