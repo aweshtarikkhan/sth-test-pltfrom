@@ -5,8 +5,9 @@ import {  LayoutDashboard, History, CalendarDays, Umbrella, HelpCircle, Bell, Lo
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { resolveCurrentEmployee, getCachedBusinessName, getCachedOrganization, getCachedEmployee, saveEmployeeCache } from '@/lib/employee-utils';
+import { resolveCurrentEmployee, getCachedBusinessName, getCachedOrganization, getCachedEmployee, saveEmployeeCache, clearEmployeeCache } from '@/lib/employee-utils';
 import { captureAccurateLocation } from '@/lib/geo-utils';
+import { computeShiftStatus } from '@/lib/shift-utils';
 import logoImg from '@/assets/logo.png';
 
 
@@ -71,39 +72,51 @@ export default function DashboardLayout() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login');
-      } else {
-        const empData = await resolveCurrentEmployee(session?.user);
-        if (empData) {
-          setEmployee(empData);
-          const resolvedOrg = empData.organization;
-          if (resolvedOrg?.name) {
-            setOrganization(resolvedOrg);
-            setBusinessName(resolvedOrg.name);
-          } else if (empData.org_id) {
-            const { data: orgData } = await supabase
-              .from('organizations')
-              .select('*')
-              .eq('id', empData.org_id)
-              .maybeSingle();
-            if (orgData) {
-              setOrganization(orgData);
-              setBusinessName(orgData.name || '');
-              saveEmployeeCache(empData, orgData);
-            }
-          }
+        return;
+      }
+
+      const empData = await resolveCurrentEmployee(session?.user);
+      if (!empData || empData.is_active === false) {
+        setEmployee(null);
+        clearEmployeeCache();
+        await supabase.auth.signOut();
+        toast({
+          title: 'Access Denied',
+          description: 'Email ID & password mismatch or you do not have access to Attendance Portal. Please contact your organization administrator.',
+          variant: 'destructive',
+        });
+        navigate('/login');
+        return;
+      }
+
+      setEmployee(empData);
+      const resolvedOrg = empData.organization;
+      if (resolvedOrg?.name) {
+        setOrganization(resolvedOrg);
+        setBusinessName(resolvedOrg.name);
+      } else if (empData.org_id) {
+        const { data: orgData } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', empData.org_id)
+          .maybeSingle();
+        if (orgData) {
+          setOrganization(orgData);
+          setBusinessName(orgData.name || '');
+          saveEmployeeCache(empData, orgData);
         }
-        
-        if (empData) {
-          const { data: notifs } = await supabase
-            .from('notifications').select('*').eq('user_id', empData.auth_user_id)
-            .order('created_at', { ascending: false })
-            .limit(10);
-          if (notifs) {
-            setNotifications(notifs);
-            // Count unread leave notifications
-            const leaveNotifs = notifs.filter((n: any) => !n.is_read && (n.type === 'leave_approved' || n.type === 'leave_rejected' || n.type === 'leave_request'));
-            setUnreadLeaves(leaveNotifs.length);
-          }
+      }
+
+      const { data: notifs } = await supabase
+        .from('notifications').select('*').eq('user_id', empData.auth_user_id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (notifs) {
+        setNotifications(notifs);
+        // Count unread leave notifications
+        const leaveNotifs = notifs.filter((n: any) => !n.is_read && (n.type === 'leave_approved' || n.type === 'leave_rejected' || n.type === 'leave_request'));
+        setUnreadLeaves(leaveNotifs.length);
+      }
 
           // Check for unread chat messages
             try {
@@ -153,8 +166,6 @@ export default function DashboardLayout() {
               console.error("Error fetching unread:", err);
               setUnreadChats(0);
             }
-          }
-      }
     };
     checkUser();
   }, [navigate]);
@@ -174,13 +185,20 @@ export default function DashboardLayout() {
       const locationData = await captureAccurateLocation();
 
       if (type === 'in') {
+        let empShift = null;
+        try {
+          const { data: sData } = await supabase.from('employee_shifts').select('shifts(*)').eq('employee_id', employee.id).maybeSingle();
+          empShift = sData?.shifts;
+        } catch {}
+        const computedStatus = computeShiftStatus(now, empShift);
+
         const { error, data } = await supabase.from('attendances').upsert({
           employee_id: employee.id,
           org_id: employee.org_id,
           date: today,
           clock_in_time: now,
           clock_in_location: locationData,
-          status: 'present'
+          status: computedStatus
         }, { onConflict: 'employee_id,date' }).select().single();
         if (error) throw error;
 
@@ -192,7 +210,7 @@ export default function DashboardLayout() {
             attendance_date: today,
             clock_in_time: now,
             clock_in_location: locationData,
-            status: 'present'
+            status: computedStatus
           }, { onConflict: 'employee_id,attendance_date' });
         } catch (syncErr) {
           console.warn("Sync to attendance (singular) failed:", syncErr);
@@ -261,6 +279,7 @@ export default function DashboardLayout() {
   };
 
   const handleLogout = async () => {
+    clearEmployeeCache();
     await supabase.auth.signOut();
     navigate('/login');
   };

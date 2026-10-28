@@ -571,6 +571,11 @@ export default function HistoryPage({ session }: { session: any }) {
                          </span>
                        )}
                     </div>
+                    {record.clock_in_location?.address && (
+                      <div className="text-[9px] text-gray-400 dark:text-slate-500 truncate max-w-[200px] mt-0.5" title={record.clock_in_location.address}>
+                        📍 {record.clock_in_location.address.toLowerCase().includes('russia') ? 'Office Network / Web Check-In' : record.clock_in_location.address}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="min-w-[70px] flex justify-end">

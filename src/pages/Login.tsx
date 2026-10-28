@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Building2, Eye, EyeOff } from 'lucide-react';
-import { resolveCurrentEmployee } from '@/lib/employee-utils';
+import { resolveCurrentEmployee, clearEmployeeCache } from '@/lib/employee-utils';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,6 +18,9 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Clear any previous stale employee cache before authenticating
+    clearEmployeeCache();
 
     const clean = email.trim().toLowerCase();
     const attEmail = clean.startsWith('attendance_') ? clean : `attendance_${clean}`;
@@ -41,11 +44,27 @@ export default function Login() {
     }
 
     if (error) {
-      toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
+      toast({
+        title: 'Login Failed',
+        description: 'Email ID & password mismatch or you do not have access to Attendance Portal. Please contact your organization administrator.',
+        variant: 'destructive',
+      });
     } else if (data?.user) {
-      // Proactively ensure employee record is linked with auth_user_id
+      // Proactively ensure employee record is linked with auth_user_id and is an active employee
       try {
-        await resolveCurrentEmployee(data.user);
+        const emp = await resolveCurrentEmployee(data.user);
+        if (!emp || emp.is_active === false) {
+          // User is authenticated in Supabase (e.g. org admin or invoice portal user), but NOT an active employee
+          await supabase.auth.signOut();
+          clearEmployeeCache();
+          toast({
+            title: 'Access Denied',
+            description: 'Email ID & password mismatch or you do not have access to Attendance Portal. Please contact your organization administrator.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
       } catch (linkErr) {
         console.warn('Initial employee resolve error:', linkErr);
       }

@@ -44,6 +44,10 @@ function App() {
           path="/" 
           element={session ? <Navigate to="/dashboard" replace /> : <Login />} 
         />
+        <Route 
+          path="/login" 
+          element={session ? <Navigate to="/dashboard" replace /> : <Login />} 
+        />
         {session && (
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard session={session} />} />

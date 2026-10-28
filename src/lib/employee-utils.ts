@@ -1,9 +1,26 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export function getCachedEmployee(): any {
+export function clearEmployeeCache() {
+  try {
+    localStorage.removeItem('attendance_employee');
+    localStorage.removeItem('attendance_org_name');
+    localStorage.removeItem('attendance_org_data');
+    localStorage.removeItem('attendance_today_record');
+  } catch (e) {
+    console.warn('Failed clearing employee cache:', e);
+  }
+}
+
+export function getCachedEmployee(expectedUserId?: string): any {
   try {
     const raw = localStorage.getItem('attendance_employee');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const emp = JSON.parse(raw);
+    if (expectedUserId && emp?.auth_user_id && emp.auth_user_id !== expectedUserId) {
+      clearEmployeeCache();
+      return null;
+    }
+    return emp;
   } catch {
     return null;
   }
@@ -52,8 +69,10 @@ export function saveEmployeeCache(emp: any, org?: any) {
  * Robust helper to resolve an employee record for the current session/user.
  * 1. Checks `employees.auth_user_id == user.id` using safe select('*')
  * 2. If not found, falls back to `employees.email ilike user.email` (and strips `attendance_` prefix if present)
- * 3. Safely fetches organization details (id, name, logo_url, weekly_offs)
- * 4. Caches organization and employee in localStorage for instant 0ms loads on future visits.
+ * 3. Enforces is_active === true
+ * 4. Auto-heals auth_user_id if needed
+ * 5. Safely fetches organization details (id, name, logo_url, weekly_offs)
+ * 6. Strictly returns null if no valid active employee record exists for the authenticated user.
  */
 export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
   const user = sessionOrUser?.user || sessionOrUser;
@@ -68,6 +87,7 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
         .from('employees')
         .select('*')
         .eq('auth_user_id', user.id)
+        .eq('is_active', true)
         .limit(1);
 
       if (!error && byAuthId && byAuthId.length > 0) {
@@ -84,6 +104,7 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
         .from('employees')
         .select('*')
         .ilike('email', cleanEmail)
+        .eq('is_active', true)
         .limit(1);
 
       if ((!byEmail || byEmail.length === 0) && rawEmail !== cleanEmail) {
@@ -91,6 +112,7 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
           .from('employees')
           .select('*')
           .ilike('email', rawEmail)
+          .eq('is_active', true)
           .limit(1);
         byEmail = res.data;
       }
@@ -98,7 +120,7 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
       if (byEmail && byEmail.length > 0) {
         emp = byEmail[0];
 
-        // 3. Auto-heal auth_user_id in database if it was null or mismatched
+        // Auto-heal auth_user_id in database if it was null or mismatched
         if (user.id && emp.auth_user_id !== user.id) {
           try {
             await supabase
@@ -113,36 +135,13 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
       }
     }
 
-    // 4. Special fallback: if logged in user is org owner/admin without explicit employee row
-    if (!emp && user.id) {
-      try {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*, organization:organizations(*)')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (prof?.org_id) {
-          // Check if employee exists in this org with this user's name or email
-          const { data: orgEmps } = await supabase
-            .from('employees')
-            .select('*')
-            .eq('org_id', prof.org_id)
-            .limit(1);
-
-          if (orgEmps && orgEmps.length > 0) {
-            emp = orgEmps[0];
-          }
-          if (prof.organization) {
-            saveEmployeeCache(emp, prof.organization);
-          }
-        }
-      } catch (profErr) {
-        console.warn('Profile fallback failed:', profErr);
-      }
-    }
-
     if (emp) {
+      // Extra safety: ensure employee is active
+      if (emp.is_active === false) {
+        clearEmployeeCache();
+        return null;
+      }
+
       // Safely fetch organization details if not already attached
       if (!emp.organization && emp.org_id) {
         try {
@@ -166,6 +165,7 @@ export async function resolveCurrentEmployee(sessionOrUser: any): Promise<any> {
     console.error('Error resolving employee:', err);
   }
 
-  // Fallback to cached employee if network was slow or errored
-  return getCachedEmployee();
+  // Strictly no match found — clear stale cache and return null
+  clearEmployeeCache();
+  return null;
 }

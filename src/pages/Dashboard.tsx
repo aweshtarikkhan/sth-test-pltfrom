@@ -4,17 +4,17 @@ import { format, startOfMonth, endOfMonth, parseISO, eachDayOfInterval, startOfW
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Clock, CalendarDays, MapPin, CheckCircle2, AlertCircle, XCircle, FileText, Lock, User, ChevronRight, Fingerprint, Umbrella } from 'lucide-react';
+import { Clock, CalendarDays, MapPin, CheckCircle2, AlertCircle, XCircle, FileText, Lock, User, ChevronRight, Fingerprint, Umbrella, Navigation, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { getEffectiveAttendanceStatus } from '@/lib/shift-utils';
+import { getEffectiveAttendanceStatus, computeShiftStatus } from '@/lib/shift-utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RegularizeDialog } from '@/components/shared/RegularizeDialog';
 import { safeFormatTime } from '@/lib/utils';
 import { resolveCurrentEmployee, getCachedEmployee } from '@/lib/employee-utils';
-import { captureAccurateLocation } from '@/lib/geo-utils';
+import { captureAccurateLocation, checkLocationPermission } from '@/lib/geo-utils';
 
 export default function Dashboard({ session }: { session: any }) {
   const [employee, setEmployee] = useState<any>(() => getCachedEmployee());
@@ -71,6 +71,7 @@ export default function Dashboard({ session }: { session: any }) {
   // Clock In / Out Confirmation Modal
   const [clockConfirmOpen, setClockConfirmOpen] = useState(false);
   const [clockType, setClockType] = useState<'in' | 'out'>('in');
+  const [capturingLocation, setCapturingLocation] = useState(false);
 
   // Regularize Modal
   const [regularizeOpen, setRegularizeOpen] = useState(false);
@@ -517,8 +518,21 @@ export default function Dashboard({ session }: { session: any }) {
         return;
       }
       
-      // Capture location accurately with GPS and IP fallbacks
+      // Pre-check browser location permission
+      const permState = await checkLocationPermission();
+      if (permState === 'denied') {
+        toast({
+          title: 'Location Permission Blocked',
+          description: 'Please enable Location in your browser address bar (lock icon) for pinpoint GPS attendance tracking.',
+          variant: 'destructive',
+        });
+      }
+
+      // Capture precise GPS / WiFi location
+      setCapturingLocation(true);
+      toast({ title: 'Capturing Location...', description: 'Acquiring precise coordinates from your device...' });
       const locationData = await captureAccurateLocation();
+      setCapturingLocation(false);
 
       if (type === 'in') {
         // Ensure any previous unclosed punches are auto closed before marking new punch
@@ -528,13 +542,14 @@ export default function Dashboard({ session }: { session: any }) {
           } catch (e) {}
         }
 
+        const computedShiftStatus = computeShiftStatus(now, employeeShift);
         const punchPayload = {
           employee_id: currentEmp.id,
           org_id: currentEmp.org_id,
           date: today,
           clock_in_time: now,
           clock_in_location: locationData,
-          status: 'present'
+          status: computedShiftStatus
         };
 
         const { data: savedRecord, error: clockErr } = await supabase
@@ -553,7 +568,7 @@ export default function Dashboard({ session }: { session: any }) {
             attendance_date: today,
             clock_in_time: now,
             clock_in_location: locationData,
-            status: 'present',
+            status: computedShiftStatus,
             override_status: null,
             hr_note: null,
             notes: null
@@ -564,10 +579,11 @@ export default function Dashboard({ session }: { session: any }) {
 
         setTodayRecord(savedRecord);
         try { localStorage.setItem('attendance_today_record', JSON.stringify(savedRecord)); } catch {}
-        toast({ 
-          title: 'Clocked In', 
-          description: locationData?.address ? `Attendance marked: ${locationData.address}` : 'Attendance marked.' 
-        });
+        if (locationData?.source === 'fallback') {
+          toast({ title: 'Clocked In', description: 'Attendance recorded via Web Check-In (Location access was unavailable on this device).' });
+        } else {
+          toast({ title: '✅ Clocked In', description: locationData?.address ? `Attendance marked: ${locationData.address}` : 'Attendance marked.' });
+        }
         window.dispatchEvent(new Event('attendance_updated'));
       } else {
         let punchId = todayRecord?.id;
@@ -619,10 +635,11 @@ export default function Dashboard({ session }: { session: any }) {
 
         setTodayRecord(updatedRecord);
         try { localStorage.setItem('attendance_today_record', JSON.stringify(updatedRecord)); } catch {}
-        toast({ 
-          title: 'Clocked Out', 
-          description: locationData?.address ? `Clock-out saved: ${locationData.address}` : 'Your shift has ended.' 
-        });
+        if (locationData?.source === 'fallback') {
+          toast({ title: 'Clocked Out', description: 'Clock-out recorded via Web Check-In.' });
+        } else {
+          toast({ title: '✅ Clocked Out', description: locationData?.address ? `Clock-out saved: ${locationData.address}` : 'Your shift has ended.' });
+        }
         window.dispatchEvent(new Event('attendance_updated'));
       }
       loadData();
@@ -1008,7 +1025,14 @@ export default function Dashboard({ session }: { session: any }) {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex gap-3 w-full mt-6">
+            <div className="flex items-center gap-2 mt-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900">
+              <Navigation className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 animate-pulse" />
+              <p className="text-[11px] text-blue-700 dark:text-blue-300 font-medium leading-snug">
+                Precise GPS location will be captured with pin-point accuracy. Please keep your GPS/Location Services ON.
+              </p>
+            </div>
+
+            <div className="flex gap-3 w-full mt-4">
               <Button
                 variant="outline"
                 onClick={() => setClockConfirmOpen(false)}
