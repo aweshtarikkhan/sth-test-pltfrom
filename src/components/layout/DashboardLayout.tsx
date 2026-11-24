@@ -839,12 +839,12 @@ export default function DashboardLayout() {
         )}
 
         {/* Page Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative pb-28 md:pb-8 pt-4 md:pt-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-slate-900 transition-colors relative pb-20 md:pb-6 pt-4 md:pt-0" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="min-h-full flex flex-col">
               <div className="flex-1">
                 <Outlet />
               </div>
-              <div className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400 mt-8 shrink-0 pb-4">
+              <div className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400 mt-3 shrink-0 pb-2">
                 <span>Powered by</span>
                 <img src={logoImg} alt="AassayBiz" className="h-8 md:h-9 w-auto object-contain opacity-95" />
               </div>

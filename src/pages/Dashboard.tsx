@@ -1022,8 +1022,7 @@ export default function Dashboard({ session }: { session: any }) {
                 <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-black text-gray-900 dark:text-white leading-none mb-1">Apply for Leave</span>
-                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase">Request Time Off</span>
+                <span className="text-lg font-black text-gray-900 dark:text-white leading-none">Apply for Leave</span>
               </div>
             </div>
             <ChevronRight className="w-6 h-6 text-blue-300 dark:text-blue-500 relative z-10" />
@@ -1041,8 +1040,7 @@ export default function Dashboard({ session }: { session: any }) {
                   <Receipt className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-lg font-black text-gray-900 dark:text-white leading-none mb-1">Expenses & Travel Claims</span>
-                  <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 tracking-wider uppercase">Log Bike Travel & Bills</span>
+                  <span className="text-lg font-black text-gray-900 dark:text-white leading-none">Expenses & Travel Claims</span>
                 </div>
               </div>
               <ChevronRight className="w-6 h-6 text-orange-300 dark:text-orange-500 relative z-10" />
