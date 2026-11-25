@@ -1481,11 +1481,11 @@ export default function ExpensesPage({ session }: { session: any }) {
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32 sm:w-36 h-8 text-xs bg-white shrink-0">
-              <SelectValue placeholder="All Statuses" />
+            <SelectTrigger className="w-28 sm:w-32 h-8 text-xs bg-white shrink-0">
+              <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="draft">Draft (Unsent)</SelectItem>
               <SelectItem value="submitted">Pending</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
